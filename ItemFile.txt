@@ -1,0 +1,15 @@
+A01~Poison Apple~Looks tasty, but you shouldn't eat that.~Equippable~0~10~0~R04~false~
+A02~Apple~A red apple.~Consumable~20~0~0~R03~false~
+A03~Glass Slippers~You would have to be pretty light on your feet to dance in these.~Equippable~0~0~15~R08~false~
+A04~Pumpkin~The shape of it reminds you of a carriage.~Consumable~30~15~5~R07~false~
+A05~Flying Carpet~You prefer shag, but this will do.~Equippable~0~15~0~R12~false~
+A06~Magic Lamp~A golden oil lamp. You expect me to believe someone fits in here!?~Equippable~15~15~15~R11~false~
+A07~Scissors~Snip-Snip~Equippable~0~25~0~R15~false~
+A08~Shower Cap~Keeps your hair dry.~Equippable~0~20~5~R16~false~
+A09~Fishing Net~A small net.~Equippable~0~20~5~R19~false~
+A10~Trident~This thing could do some damage for an over glorified fork.~Equippable~10~20~10~R20~false~
+A11~Lucky Cricket~Poor little guy stuck in a cage. He seems content.~Consumable~30~0~10~R23~false~
+A12~Dragon Missile~Fearsome rocket with ornate dragon head.~Equippable~0~25~10~R24~false~
+A13~Compass~It just keeps spinning.~Equippable~10~0~25~R27~false~
+A14~Corn~This could be mistaken for gold.~Equippable~25~5~0~R28~false~
+A15~Wedding Ring~Precious.~Equippable~0~30~10~R29~false~

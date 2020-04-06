@@ -1,0 +1,7 @@
+P01~What fruit did Snow White eat that cursed her with eternal sleep?~apple~3~Usually found in the colors of read and green, sometimes yellow.~R04~200~false~
+P02~While I may seem immovable and permanent, I am actually rather fragile and with strong flames you can bend me to your will. I was the material of the slippers that adorned Cinderella's feet when she danced with the prince. What am I?~glass~5~Rhymes with mass.~R08~100~false~
+P03~Aladdin's ally, Abu, is what type of animal?~monkey~3~Type of primate with a tail.~R11~200~false~
+P04~The Sundrop ______ is the source of Rapunzel's healing power. And it rhymes with the last word in the previous sentence.~flower~3~Bee hangout spot when they are not at the hive.~R16~200~false~
+P05~In the original The Little Mermaid (1989), how many tentacles does Ursula have? (spell out the number, ex. zero).~six~3~Ursula resembles an octopus, but she has two arms...~R19~200~false~
+P06~Sun Tzu knew the Art of this? Do you know it as well?~war~5~What is it good for? Absolutely nothing.~R23~150~false~
+P07~What has a mouth but cannot speak; has a bed but does not sleep; and is not a stream or a creek?~river~5~It also bends but is not flexible, and it has a bank that does not store currency.~R27~100~false~
