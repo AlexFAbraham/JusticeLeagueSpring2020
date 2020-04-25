@@ -18,6 +18,7 @@ public class Puzzle {
 	private String puzzleLocation;
 	private int puzzleScore;
 	private Boolean puzzleIsSolved;
+	private Boolean puzzleIsLocked;
 	
 	public Puzzle() {
 		puzzleID = "";
@@ -30,10 +31,11 @@ public class Puzzle {
 		puzzleLocation = "";
 		puzzleScore = 0;
 		puzzleIsSolved = false;
+		puzzleIsLocked = false;
 	}
 	
 	public Puzzle(String puzzleID, String puzzleText, String puzzleAnswer, int puzzleAttempts, 
-			String puzzleHint, String puzzleLocation, int puzzleScore, Boolean puzzleIsSolved) {
+			String puzzleHint, String puzzleLocation, int puzzleScore, Boolean puzzleIsSolved, Boolean puzzleIsLocked) {
 		this.puzzleID = puzzleID;
 		this.puzzleText = puzzleText;
 		this.puzzleAnswer = puzzleAnswer;
@@ -42,6 +44,7 @@ public class Puzzle {
 		this.puzzleLocation = puzzleLocation;
 		this.puzzleScore = puzzleScore;
 		this.puzzleIsSolved = puzzleIsSolved;
+		this.puzzleIsLocked = puzzleIsLocked;
 	}
 	
 	// Getters
@@ -77,6 +80,10 @@ public class Puzzle {
 		return puzzleIsSolved;
 	}
 	
+	public Boolean getPuzzleIsLocked() {
+		return puzzleIsLocked;
+	}
+	
 	// Setters
 	public void setPuzzleID(String puzzleID) {
 		this.puzzleID = puzzleID;
@@ -110,8 +117,12 @@ public class Puzzle {
 		this.puzzleIsSolved = puzzleIsSolved;
 	}
 	
+	public void setPuzzleIsLocked(Boolean puzzleIsLocked) {
+		this.puzzleIsLocked = puzzleIsLocked;
+	}
+	
 	// This display a hint for the current puzzle
-	public void displayPuzzleHint(String text, ImageView emojiImageView_4) {
+	public void displayPuzzleHint(String text, ImageView emojiImageView_4, Stage primaryStage) {
 		Text puzzleHint = new Text(text);
 		
 		VBox puzzleHintBox = new VBox(10);
@@ -125,6 +136,9 @@ public class Puzzle {
 		
 		Scene puzzleHintScene = new Scene(puzzleHintBox, 450, 120);
 		Stage puzzleHintStage = new Stage();
+		
+		puzzleHintStage.setX(primaryStage.getX() + (primaryStage.getWidth() - puzzleHintScene.getWidth())/2);
+		puzzleHintStage.setY(primaryStage.getY() + (primaryStage.getHeight() - puzzleHintScene.getHeight())/2);
 		
 		puzzleHintStage.setScene(puzzleHintScene);
 		puzzleHintStage.show();

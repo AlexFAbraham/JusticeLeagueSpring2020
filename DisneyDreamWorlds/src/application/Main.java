@@ -7,6 +7,7 @@ package application;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
@@ -21,6 +22,8 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.scene.Group;
@@ -29,6 +32,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -48,6 +52,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
+import java.util.Random;
 
 public class Main extends Application {
 	
@@ -55,6 +60,7 @@ public class Main extends Application {
 	public static void main(String[] args) {
 		launch(args);
 	}
+	
 	// Reason we only name varibles is so we don't have to pass them
 	// through functions/methods as parameters every time we need to
 	// ======================================
@@ -64,29 +70,52 @@ public class Main extends Application {
 	// |						            |
 	// |						            |
 	// ======================================
-	// Scene1 = Introduction to the Game.....
-	// Scene2 = New  Game!
-	// Scene3 = Load Game!
-	// Scene4 = ScoreBoard
-	// Scene5 = Help/Info!
+	
+	// primaryScene = start menu
+	// newGameScene = new player starts a new game
+	// loadGameScene = an existing player loads an existing game
+	// scoreBoardScene = displays the top scores of players that finished the game
+	// helpScene = displays instructions/information about the game
+	// gameScene = player plays either a new game or existing game
+	// monsterVideoScene = when a player enters a room where a monster is located, a short video is played
 	Scene primaryScene, newGameScene, loadGameScene, scoreBoardScene, helpScene, gameScene, monsterVideoScene;
+	
+	Stage playerInventoryStage, playerMapStage, helpStage, commandListStage, itemHelpStage, itemStage, 
+	    monsterStage, invalidStage, puzzleHelpStage, monsterHelpStage, inventoryHelpStage, statsStage;
+	
 	// newGameButton = start/begin a new game!
 	// loadGameButton = load an existing game!
 	// scoreButton = see  at the  score board!
 	// helpButton = see commands of  the game!
 	// exitGameButton = exit the  game... duh!
 	Button newGameButton, loadGameButton, scoreButton, helpButton, exitGameButton;
+	
 	// Image and sound related variables!
-	AudioClip soundEffect_1, soundEffect_2, soundEffect_3;
-	FileInputStream backgroundImageFileInputStream, logoFileInputStream;
-	Image backgroundImageImage, logoImage;
-	BackgroundImage backgroundImageBackgroundImage;
-	Background backgroundImageBackground;
-	ImageView logoImageView;
+	// 1 = MouseClick, 2 = Success, 3 = Fail,
+	// 4 = Footsteps,  5= Horror
+	AudioClip   soundEffect_1;
+	AudioClip   soundEffect_2;
+	AudioClip   soundEffect_3;
+	AudioClip 	soundEffect_4;
+	AudioClip   soundEffect_5;
+	AudioClip backgroundSound;
+	
+	Image puzzleImage, itemImage, monsterImage;
+	
+	ImageView logoImageView, mapImageView, locationImageView, puzzleImageView, itemImageView, monsterImageView, helpImageView, wakingUpImageView, 
+							  fightingImageView, commandListImageView, puzzleHelpImageView, itemHelpImageView, monsterHelpImageView, inventoryHelpImageView;
+		
+	Background backgroundImage;
+	
 	// Game Title / Logo!
 	Label gameTitleLabel;
+	
 	// Label and Buttons!
 	VBox gameMenuBox;
+	
+	// Background Sound file path
+	String backgroundSoundPath;
+	
 	// =============================================
 	// |						                   |
 	// |						                   |
@@ -94,22 +123,30 @@ public class Main extends Application {
 	// |						                   |
 	// |						                   |
 	// =============================================
+	
 	// Some labels...
 	Label createNewGameLabel, usernameLabel, passwordLabel;
+	
 	// createNewGameButton = create new game and starts game
 	// cancelButton = cancels  the creation  of the  account
 	Button createNewGameButton, cancelButton;
+	
 	// usernameTextField = enter username for the new account
 	// passwordTextField = enter password for the new account
 	TextField usernameTextField, passwordTextField;
+	
 	// PasswordField
 	PasswordField passwordPasswordField;
+	
 	// CheckBox
 	CheckBox passwordCheckBox;
+	
 	// Button and TextFields are here
-	GridPane createNewGamePane;
+	GridPane createNewGamePane, helpPane;
+	
 	// GridPane and a label  are here
 	VBox createNewGameBox;
+	
 	// ==========================================
 	// |						                |
 	// |						                |
@@ -117,16 +154,18 @@ public class Main extends Application {
 	// |						                |
 	// |						                |
 	// ==========================================
+	
 	// Message displayed in the game
 	Text messageText;
+	
 	// Stores integer
 	IntegerProperty integer;
+	
 	// Animation.1
 	Timeline time;
+	
 	// Animation.2
 	KeyFrame key;
-	
-	
 	
 	// Classes / ArrayList / general stuff
 	Map map;
@@ -135,10 +174,13 @@ public class Main extends Application {
 	Puzzle puzzle;
 	Monster monster;
 	
-	FileInputStream emojiFileInputStream_1; Image emojiImage_1; ImageView emojiImageView_1;
-	FileInputStream emojiFileInputStream_2; Image emojiImage_2; ImageView emojiImageView_2;
-	FileInputStream emojiFileInputStream_3; Image emojiImage_3; ImageView emojiImageView_3;
-	FileInputStream emojiFileInputStream_4; Image emojiImage_4; ImageView emojiImageView_4;
+	ImageView helpImageView_1;
+	ImageView helpImageView_2;
+	
+	ImageView emojiImageView_1;
+	ImageView emojiImageView_2;
+	ImageView emojiImageView_3;
+	ImageView emojiImageView_4;
 	
 	// Item
 	ArrayList<Item> itemArrayList;
@@ -156,13 +198,24 @@ public class Main extends Application {
 							monster05, monster06, monster07, monster08;
 	
 	ArrayList<String> monsterPathVideo;
-	
-	ArrayList<String> generalCommandList, itemCommandList, monsterCommandList;
+	ArrayList<String> monsterPathGif;
+	ArrayList<String> generalCommandList;
 	
 	String userInputCommand;
 	
+	Rectangle2D screenBounds;
+	
+	TableView<Item> tableView1;
+	
+	TextField inventoryTextField;
+	
+	Text p1, p2, p3;
+	
 	@Override
 	public void start(Stage primaryStage) throws Exception {
+		
+		screenBounds = Screen.getPrimary().getVisualBounds();
+		
 		try {
 			map = new Map();
 			map.createRoomFile();
@@ -178,21 +231,11 @@ public class Main extends Application {
 			readPuzzleFile();
 			createMonsterFile();
 			readMonsterFile();
-			
-			emojiFileInputStream_1 = new FileInputStream("AngryEmoji.png");
-			emojiFileInputStream_2 = new FileInputStream("WearyEmoji.png");
-			emojiFileInputStream_3 = new FileInputStream("GrimacingEmoji.png");
-			emojiFileInputStream_4 = new FileInputStream("ThinkingEmoji.png");
-			
-			emojiImage_1 = new Image(emojiFileInputStream_1);
-			emojiImage_2 = new Image(emojiFileInputStream_2);
-			emojiImage_3 = new Image(emojiFileInputStream_3);
-			emojiImage_4 = new Image(emojiFileInputStream_4);
-			
-			emojiImageView_1 = new ImageView(emojiImage_1);
-			emojiImageView_2 = new ImageView(emojiImage_2);
-			emojiImageView_3 = new ImageView(emojiImage_3);
-			emojiImageView_4 = new ImageView(emojiImage_4);
+									
+			emojiImageView_1 = new ImageView(new Image(new FileInputStream("AngryEmoji.png")));
+			emojiImageView_2 = new ImageView(new Image(new FileInputStream("WearyEmoji.png")));
+			emojiImageView_3 = new ImageView(new Image(new FileInputStream("GrimacingEmoji.png")));
+			emojiImageView_4 = new ImageView(new Image(new FileInputStream("ThinkingEmoji.png")));
 			
 			emojiImageView_1.setFitWidth(20);
 			emojiImageView_2.setFitWidth(20);
@@ -204,13 +247,69 @@ public class Main extends Application {
 			emojiImageView_3.setFitHeight(20);
 			emojiImageView_4.setFitHeight(20);
 			
+			puzzleImage = new Image(new FileInputStream("PuzzleImage.png"));
+			itemImage = new Image(new FileInputStream("ItemImage.png"));
+			monsterImage = new Image(new FileInputStream("MonsterImage.png"));
+			
+			mapImageView = new ImageView(new Image(new FileInputStream("Map.png")));
+			locationImageView = new ImageView(new Image(new FileInputStream("Location.png")));	
+			// Help Images
+			helpImageView = new ImageView(new Image(new FileInputStream("Help.png")));
+			fightingImageView = new ImageView(new Image(new FileInputStream("Fighting.gif")));
+			itemHelpImageView = new ImageView(new Image(new FileInputStream("ItemHelp.png")));
+			puzzleHelpImageView = new ImageView(new Image(new FileInputStream("PuzzleHelp.png")));
+			monsterHelpImageView = new ImageView(new Image(new FileInputStream("MonsterHelp.png")));
+			commandListImageView = new ImageView(new Image(new FileInputStream("CommandList.png")));
+			inventoryHelpImageView = new ImageView(new Image(new FileInputStream("InventoryHelp.png")));
+			wakingUpImageView = new ImageView(new Image(new FileInputStream("WakingUp.gif")));
+			
+			wakingUpImageView.setFitWidth(300);
+			wakingUpImageView.setFitHeight(200);
+			
+			fightingImageView.setFitWidth(200);
+			fightingImageView.setFitHeight(200);
+			
+			commandListImageView.setFitWidth(screenBounds.getWidth()/2);
+			commandListImageView.setFitHeight(screenBounds.getHeight()-80);
+			
+			backgroundSoundPath = "BackgroundSound.mp3";
+			backgroundSound = new AudioClip(new File(backgroundSoundPath).toURI().toString());
+			backgroundSound.setCycleCount(AudioClip.INDEFINITE);
+			backgroundSound.setVolume(0.3);
+			backgroundSound.play();
+			
+			// Additional Stages within the game
+			playerInventoryStage = new Stage();
+			inventoryHelpStage = new Stage();
+			monsterHelpStage = new Stage();
+			commandListStage = new Stage();
+			puzzleHelpStage = new Stage();
+			playerMapStage = new Stage();
+			itemHelpStage = new Stage();
+			invalidStage = new Stage();
+			monsterStage = new Stage();
+			statsStage = new Stage();
+			helpStage = new Stage();
+			itemStage = new Stage();
+			
+			// TableView
+			tableView1 = new TableView<>();
 			
 			// Monster Videos
 			monsterPathVideo = new ArrayList<String>();
 			addMonsterVideoToArrayList();
+			// Monster Gifs
+			monsterPathGif = new ArrayList<String>();
+			addMonsterGifToArrayList();
 			// Command List
 			generalCommandList = new ArrayList<String>();
 			addGeneralCommandToArrayList();
+			
+			inventoryTextField = new TextField();
+			
+			p1 = new Text();
+			p2 = new Text();
+			p3 = new Text();
 			
 			// =====================================
 			// |						           |
@@ -226,14 +325,11 @@ public class Main extends Application {
 			exitGameButton = new Button("Exit Game");
 			
 			// Background Image
-			backgroundImageFileInputStream = new FileInputStream("IntroImageBackground.png");
-			backgroundImageImage = new Image(backgroundImageFileInputStream);
-			backgroundImageBackgroundImage = new BackgroundImage(backgroundImageImage,
-																				 BackgroundRepeat.NO_REPEAT,
-																				 BackgroundRepeat.NO_REPEAT,
-																				 BackgroundPosition.DEFAULT,
-																				 new BackgroundSize(BackgroundSize.AUTO,BackgroundSize.AUTO,true,true,true,true));
-			backgroundImageBackground = new Background(backgroundImageBackgroundImage);
+			backgroundImage = new Background(new BackgroundImage(new Image(new FileInputStream("IntroImageBackground.png")),
+										BackgroundRepeat.NO_REPEAT,
+										BackgroundRepeat.NO_REPEAT,
+										BackgroundPosition.DEFAULT,
+										new BackgroundSize(1.0,1.0,true,true,false,false)));
 			
 			// Sound Effects
 			String path_1 = "MouseClickSoundEffect.mp3";
@@ -245,15 +341,19 @@ public class Main extends Application {
 			String path_3 = "SadSoundEffect.mp3";
 			soundEffect_3 = new AudioClip(new File(path_3).toURI().toString());
 			
+			String path_4 = "FootstepsSoundEffect.mp3";
+			soundEffect_4 = new AudioClip(new File(path_4).toURI().toString());
+			
+			String path_5 = "HorrorSoundEffect.mp3";
+			soundEffect_5 = new AudioClip(new File(path_5).toURI().toString());
+			
 			// Logo Image Label
-			logoFileInputStream = new FileInputStream("Logo.png");
-			logoImage = new Image(logoFileInputStream);
-			logoImageView = new ImageView(logoImage);
+			logoImageView = new ImageView(new Image(new FileInputStream("Logo.png")));
 			logoImageView.setScaleX(1.5);
 			logoImageView.setScaleY(1.5);
 			// Label / Title of the Game / Label Size / Insets(N,E,S,W)
 			gameTitleLabel = new Label("", logoImageView);
-			gameTitleLabel.setPadding(new Insets(20,20,100,20));
+			gameTitleLabel.setPadding(new Insets(20,20,50,20));
 			
 			// Setting Button sizes
 			newGameButton.setPrefSize(100, 30);
@@ -266,10 +366,10 @@ public class Main extends Application {
 			gameMenuBox.setPrefSize(800, 600);
 			gameMenuBox.getChildren().addAll(gameTitleLabel, newGameButton, loadGameButton, scoreButton, helpButton, exitGameButton);
 			gameMenuBox.setAlignment(Pos.CENTER);
-			gameMenuBox.setBackground(backgroundImageBackground);
-			
+			gameMenuBox.setBackground(backgroundImage);
+						
 			// Scene (Pane + Width + Height) / set Intro scene
-			primaryScene = new Scene(gameMenuBox, 800, 600);	
+			primaryScene = new Scene(gameMenuBox, screenBounds.getWidth()/2, screenBounds.getHeight());
 			primaryStage.setTitle("Disney Dream Worlds!");
 			primaryStage.setScene(primaryScene);
 			
@@ -322,6 +422,17 @@ public class Main extends Application {
 		monsterPathVideo.add("MickeyApproaches.mp4");
 	}
 	
+	public void addMonsterGifToArrayList() {
+		monsterPathGif.add("SnowWhite.gif");
+		monsterPathGif.add("Cinderella.gif");
+		monsterPathGif.add("Jasmine.gif");
+		monsterPathGif.add("Rapunzel.gif");
+		monsterPathGif.add("Ariel.gif");
+		monsterPathGif.add("Mulan.gif");
+		monsterPathGif.add("Pocahontas.gif");
+		monsterPathGif.add("MickeyMouse.gif");
+	}
+	
 	// This function adds all possible command to arrayList
 	public void addGeneralCommandToArrayList() {
 		// ====================================
@@ -330,7 +441,6 @@ public class Main extends Application {
 		// |						          |
 		// ====================================
 		// Move where?
-		generalCommandList.add("move");
 		generalCommandList.add("move north");
 		generalCommandList.add("north");
 		generalCommandList.add("n");
@@ -346,7 +456,11 @@ public class Main extends Application {
 		// More in-game commands
 		generalCommandList.add("save");
 		generalCommandList.add("help");
+		generalCommandList.add("commands");
+		generalCommandList.add("command list");
 		generalCommandList.add("check stats");
+		generalCommandList.add("look stats");
+		generalCommandList.add("open stats");
 		generalCommandList.add("stats");
 		// Score
 		generalCommandList.add("check score");
@@ -392,13 +506,10 @@ public class Main extends Application {
 		// ====================================
 		// Inventory Interaction / Items
 		generalCommandList.add("use");
-		generalCommandList.add("use item");
+		generalCommandList.add("consume");
 		generalCommandList.add("equip");
-		generalCommandList.add("equip item");
 		generalCommandList.add("unequip");
-		generalCommandList.add("unequip item");
 		generalCommandList.add("drop");
-		generalCommandList.add("drop item");
 		// ====================================
 		// |						          |
 		// |   Puzzle Interaction Scenario    | Scenario 4
@@ -422,21 +533,6 @@ public class Main extends Application {
 		generalCommandList.add("attack");
 		generalCommandList.add("run");
 		generalCommandList.add("flee");
-	}
-	
-	// This function list only item related commands
-	public void addItemCommandToArrayList() {
-		itemCommandList.add("use");
-		itemCommandList.add("use item");
-		itemCommandList.add("equip");
-		itemCommandList.add("equip item");
-		itemCommandList.add("unequip");
-		itemCommandList.add("unequip item");
-		itemCommandList.add("drop");
-		itemCommandList.add("drop item");
-		itemCommandList.add("examine");
-		itemCommandList.add("examine item");
-		itemCommandList.add("help");
 	}
 	
 	// =====================================
@@ -506,14 +602,16 @@ public class Main extends Application {
 		
 		createNewGameBox.getChildren().addAll(createNewGameLabel, createNewGamePane);
 		
-		newGameScene = new Scene(createNewGameBox, 800, 600);
+		newGameScene = new Scene(createNewGameBox, screenBounds.getWidth()/2, screenBounds.getHeight());
 		primaryStage.setScene(newGameScene);
 		
 		// Buttons On Action!
 		createNewGameButton.setOnAction(e -> {
 			soundEffect_1.play(1.0);
+			
 			String verifyUsername = usernameTextField.getText();
 			String verifyPassword = passwordTextField.getText();
+						
 			Boolean validUsername = false;
 			Boolean validPassword = false;
 			VBox errorBox = new VBox(10);
@@ -521,6 +619,9 @@ public class Main extends Application {
 			
 			if (verifyUsername.length() <= 3) {
 				errorBox.getChildren().add(new Text("Username is too short!"));
+			}
+			else if (verifyUsername.length() >= 11) {
+				errorBox.getChildren().add(new Text("Username is too long!"));
 			}
 			else {
 				validUsername = true;
@@ -532,21 +633,38 @@ public class Main extends Application {
 				validPassword = true;
 			}
 			if (validUsername == true && validPassword == true){
-				primaryStage.setTitle("Game Running!");
-				player = new Player();
-				player.setPlayerUsername(usernameTextField.getText());
-				player.setPlayerPassword(passwordTextField.getText());
-				showStartGameScene(primaryStage);
+				
+				if (validUsernameFile(primaryStage, usernameTextField.getText())) {
+					
+					primaryStage.setTitle("Game Running!");
+					player = new Player();
+				
+					player.setPlayerUsername(usernameTextField.getText());
+					player.setPlayerPassword(passwordTextField.getText());
+				
+					Random random = new Random();
+					player.setPlayerID(String.valueOf(random.nextInt(9999999) + usernameTextField.getText().toUpperCase().substring(0,1) + passwordTextField.getText().toUpperCase().charAt(0)));
+				
+					createPlayerFile(player);
+					
+					showStartGameScene(primaryStage);
+					backgroundSound.stop();
+				}
 			}
 			else {
 				errorBox.getChildren().add(emojiImageView_3);
 				Button okButton = new Button("OK");
 				errorBox.getChildren().add(okButton);
-				Scene errorScene = new Scene(errorBox, 200, 150);
+				Scene errorScene = new Scene(errorBox, 250, 150);
 				Stage errorStage = new Stage();
+								
+				errorStage.setX(primaryStage.getX() + (primaryStage.getWidth() - errorScene.getWidth())/2);
+				errorStage.setY(primaryStage.getY() + (primaryStage.getHeight() - errorScene.getHeight())/2);
+				
 				errorStage.setScene(errorScene);
 				errorStage.show();
 				errorStage.setTitle("Error Message");
+				
 				okButton.setOnAction(f -> {
 					errorStage.close();
 				});
@@ -559,6 +677,91 @@ public class Main extends Application {
 		});
 	}
 	
+	public void createPlayerFile(Player player) {
+		try {
+			File userFile = new File(player.getPlayerUsername() + ".txt");
+		
+			userFile.createNewFile();
+		
+			FileWriter playerFileWriter = new FileWriter(player.getPlayerUsername() + ".txt");
+			
+			playerFileWriter.write(player.getPlayerID() + "~");
+			playerFileWriter.write(player.getPlayerUsername() + "~");
+			playerFileWriter.write(player.getPlayerPassword() + "~");
+			playerFileWriter.write(player.getPlayerCurrentHealth() + "~");
+			playerFileWriter.write(player.getPlayerTotalHealth() + "~");
+			playerFileWriter.write(player.getPlayerMinAttack() + "~");
+			playerFileWriter.write(player.getPlayerMaxAttack() + "~");
+			playerFileWriter.write(player.getPlayerDefense() + "~");
+			playerFileWriter.write(player.getPlayerScore() + "~\n");
+			playerFileWriter.write(player.getPlayerLocation() + "~");
+			
+			for (int itemIndex = 0; itemIndex < itemArrayList.size(); itemIndex++) {
+				playerFileWriter.write(itemArrayList.get(itemIndex).getItemLocation() + "~");
+				playerFileWriter.write(itemArrayList.get(itemIndex).getItemIsPickedUp() + "~");
+				playerFileWriter.write(itemArrayList.get(itemIndex).getItemIsEquipped() + "~");
+				playerFileWriter.write(itemArrayList.get(itemIndex).getItemIsLocked() + "~\n");
+			}
+			
+			for (int puzzleIndex = 0; puzzleIndex < puzzleArrayList.size(); puzzleIndex++) {
+				playerFileWriter.write(puzzleArrayList.get(puzzleIndex).getPuzzleIsSolved() + "~");
+				playerFileWriter.write(puzzleArrayList.get(puzzleIndex).getPuzzleIsLocked() + "~\n");
+			}
+			
+			for (int monsterIndex = 0; monsterIndex < monsterArrayList.size(); monsterIndex++) {
+				playerFileWriter.write(monsterArrayList.get(monsterIndex).getMonsterCurrentHealth() + "~");
+				playerFileWriter.write(monsterArrayList.get(monsterIndex).getMonsterIsDefeated() + "~\n");
+			}
+			
+			playerFileWriter.close();
+		}
+		catch(Exception e) {
+			
+		}
+	}
+	
+	// This function validates the username of the player
+	// It verifies if the username is on use or not
+	public Boolean validUsernameFile(Stage primaryStage, String username) {
+
+		File userFile = new File(username + ".txt");
+	
+		if (userFile.exists()) {
+			Text t1 = new Text(username + " is already in use!");
+			Text t2 = new Text("Please choose another username");
+		
+			t1.setStyle("-fx-font-size: 13px;" +
+				   "-fx-font-weight: bold");
+			t2.setStyle("-fx-font-size: 13px;" +
+				   "-fx-font-weight: bold");
+		
+			Button okButton = new Button("OK");
+		
+			VBox box = new VBox(10);
+			box.setAlignment(Pos.CENTER);
+		
+			box.getChildren().add(t1);
+			box.getChildren().add(t2);
+			box.getChildren().add(emojiImageView_2);
+			box.getChildren().add(okButton);
+		
+			Scene userScene = new Scene(box , 250, 150);
+			Stage userStage = new Stage();
+		
+			userStage.setX(primaryStage.getX() + (primaryStage.getWidth() - userScene.getWidth())/2);
+			userStage.setY(primaryStage.getY() + (primaryStage.getHeight() - userScene.getHeight())/2);
+		
+			userStage.setScene(userScene);
+			userStage.show();
+			userStage.setTitle("Username in use");
+		
+			okButton.setOnAction(e -> {
+				userStage.close();
+			});
+			return false;
+		}
+		return true;
+	}
 	
 	// ====================================
 	// |						          |
@@ -666,36 +869,90 @@ public class Main extends Application {
 		TextField userInputTextField = new TextField();
 		userInputCommand = new String();
 		
+		// Command entered
 		userInputTextField.setOnKeyPressed(e -> {
-			if (e.getCode().equals(KeyCode.ENTER)) {
-				userInputCommand = userInputTextField.getText();
-				userInputCommand = userInputCommand.toLowerCase();
+			if (e.getCode().equals(KeyCode.ENTER)) {	
+				
+				userInputCommand = userInputTextField.getText().toLowerCase();
 				
 				// This function validates the command, if false, display invalid command message
 				if (player.validateCommand(userInputCommand, generalCommandList).equals(false)) {
-					player.displayInvalidCommandMessage(userInputCommand, emojiImageView_1);
+					if (invalidStage.isShowing()) {
+						invalidStage.close();
+						player.displayInvalidCommandMessage(userInputCommand, emojiImageView_1, primaryStage, invalidStage);
+					}
+					else {
+						player.displayInvalidCommandMessage(userInputCommand, emojiImageView_1, primaryStage, invalidStage);
+					}
 				}
 				else if (userInputTextField.getText().equals("explore") || userInputTextField.getText().equals("explore room")) {
 					checkForSomething(primaryStage, gameBox, userInputTextField);
 				}
 				else if (userInputTextField.getText().equals("open map") || userInputTextField.getText().equals("map") || userInputTextField.getText().equals("look map")) {
-					player.displayMap(player);
+					//player.displayMap(player, playerMapStage, mapImageView, locationImageView, puzzleImage, itemImage, monsterImage, puzzleArrayList, itemArrayList, monsterArrayList);
+					if (!playerMapStage.isShowing()) 
+						player.displayMap(player, playerMapStage, mapImageView, locationImageView, puzzleImage, itemImage, monsterImage, puzzleArrayList, itemArrayList, monsterArrayList);
 				}
 				else if (userInputTextField.getText().equals("check inventory") || userInputTextField.getText().equals("look inventory") || userInputTextField.getText().equals("inventory") || userInputTextField.getText().equals("i")) {
-					player.playerChecksInventory(player, itemArrayList, emojiImageView_2);
+					if (player.getPlayerInventory().size() < 1 && player.getPlayerEquipment().size() < 1) {
+						if (invalidStage.isShowing()) {
+							invalidStage.close();
+							player.displayInvalidCommandMessage("empty inventory", emojiImageView_2, primaryStage, invalidStage);
+						}
+						else {
+							player.displayInvalidCommandMessage("empty inventory", emojiImageView_2, primaryStage, invalidStage);
+						}
+					}
+					if (!playerInventoryStage.isShowing()) 
+						player.playerChecksInventory(player, itemArrayList, emojiImageView_2, emojiImageView_3, generalCommandList, map.roomArrayList, playerInventoryStage, primaryStage, 
+								tableView1, screenBounds, commandListStage, inventoryHelpStage, commandListImageView, inventoryHelpImageView, invalidStage, inventoryTextField);
+				}
+				else if (userInputTextField.getText().equals("help")) {
+					if (!helpStage.isShowing())
+						player.helpCommand(helpStage, helpImageView, screenBounds, "Help");
+				}
+				else if (userInputTextField.getText().equals("commands") || userInputTextField.getText().equals("command list")) {
+					if (!commandListStage.isShowing())
+						player.helpCommand(commandListStage, commandListImageView, screenBounds, "Command List");
+				}
+				else if (userInputTextField.getText().equals("stats") || userInputTextField.getText().equals("look stats") || userInputTextField.getText().equals("open stats") || userInputTextField.getText().equals("check stats")) {
+					if (statsStage.isShowing()) {
+						statsStage.close();
+						player.displayStats(emojiImageView_3, primaryStage, player, statsStage);
+					}
+					else {
+						player.displayStats(emojiImageView_3, primaryStage, player, statsStage);
+					}
+				}
+				else if (userInputTextField.getText().equals("start menu") || userInputTextField.getText().equals("main menu") || userInputTextField.getText().equals("menu")) {
+					try {
+						if(playerInventoryStage.isShowing())
+							playerInventoryStage.close();
+						if(playerMapStage.isShowing())
+							playerMapStage.close();
+						if(helpStage.isShowing())
+							helpStage.close();
+						if(commandListStage.isShowing())
+							commandListStage.close();
+						
+						start(primaryStage);
+					} catch (Exception f) {
+						f.printStackTrace();
+					}
 				}
 				// if the user moves, then update the GridPane
 				// if the user moves into a monster room, play short monster video
 				else {
-					if (player.doCommand(userInputCommand, userInputTextField, player, map, itemArrayList, puzzleArrayList, emojiImageView_2, generalCommandList)) {
+					if (player.doMoveCommand(userInputCommand, userInputTextField, player, map, itemArrayList, puzzleArrayList, emojiImageView_2, generalCommandList, primaryStage, locationImageView, invalidStage)) {
 						gameBox.getChildren().clear();
 						Boolean validMonster = false;
-						for (int i = 0; i < monsterArrayList.size(); i++) {
-							if (monsterArrayList.get(i).getMonsterLocation().equals(player.getPlayerLocation())) {
+						for (int monsterIndex = 0; monsterIndex < monsterArrayList.size(); monsterIndex++) {
+							if (monsterArrayList.get(monsterIndex).getMonsterLocation().equals(player.getPlayerLocation()) && monsterArrayList.get(monsterIndex).getMonsterIsDefeated().equals(false)) {
 								validMonster = true;
-								checkForMonster(primaryStage, i);
+								checkForMonster(primaryStage, monsterIndex);
 							}	
 						}
+						// 
 						if (validMonster == false) {
 							showStartGameScene(primaryStage);
 						}
@@ -705,18 +962,40 @@ public class Main extends Application {
 			}
 		});
 		
+		int monsterTotalScore = 0;
+		for (int monsterIndex = 0; monsterIndex < monsterArrayList.size(); monsterIndex++) {
+			if (monsterArrayList.get(monsterIndex).getMonsterIsDefeated().equals(true)) {
+				monsterTotalScore += 200;
+			}
+		}
+		
+		// Setting Score
+		int puzzleTotalScore = 0;
+		for (int puzzleIndex = 0; puzzleIndex < puzzleArrayList.size(); puzzleIndex++) {
+			if (puzzleArrayList.get(puzzleIndex).getPuzzleIsSolved().equals(true)) {
+				puzzleTotalScore += puzzleArrayList.get(puzzleIndex).getPuzzleScore();
+			}
+		}
+		
+		player.setPlayerScore((player.getPlayerEquipment().size()*100) + (player.getPlayerInventory().size()*100) + puzzleTotalScore + monsterTotalScore);
+		Label score = new Label("Score: " + player.getPlayerScore());
+		score.setStyle("-fx-font-size: 13px;" +
+				       "-fx-font-weight: bold");
+		
 		// Add to GridPane
 		gameBox.add(logoImageView, 0, 0);
 		gameBox.add(displayAnimatedMessage(map.roomArrayList.get(indexLocation).getRoomDescription()), 0,1);
 		gameBox.add(roomTable, 0, 2);
 		gameBox.add(userInputTextField, 0,3);
+		gameBox.add(score, 0, 4);
 		
 		// Need to center each node(element) one by one
 		GridPane.setHalignment(logoImageView, HPos.CENTER);
 		GridPane.setHalignment(roomTable, HPos.CENTER);
 		GridPane.setHalignment(userInputTextField, HPos.CENTER);
+		GridPane.setHalignment(score, HPos.CENTER);
 		
-		gameScene = new Scene(gameBox, 800, 600);
+		gameScene = new Scene(gameBox, screenBounds.getWidth()/2, screenBounds.getHeight());
 		primaryStage.setScene(gameScene);
 		primaryStage.setTitle("Game Running!");
 	}
@@ -725,18 +1004,31 @@ public class Main extends Application {
 	// in the current player's location
 	public void checkForSomething(Stage primaryStage, GridPane gameBox, TextField userInputTextField) {
 		Boolean puzzleFound = false;
+		Boolean monsterFound = false;
 		Boolean somethingFound = false;
+		
+		for (int monsterIndex = 0; monsterIndex < monsterArrayList.size(); monsterIndex++) {
+			if (monsterArrayList.get(monsterIndex).getMonsterLocation().equals(player.getPlayerLocation()) && monsterArrayList.get(monsterIndex).getMonsterIsDefeated().equals(false)) {
+				somethingFound = true;
+				monsterFound = true;
+				
+				gameBox.getChildren().clear();
+				displayMonsterFoundScene(primaryStage, gameBox, monsterIndex, userInputTextField);
+			}
+		}
+		
 		
 		// If a puzzle is found
 		// It means an item is found too! (reward)
 		for (int puzzleIndex = 0; puzzleIndex < puzzleArrayList.size(); puzzleIndex++) {
-			if (puzzleArrayList.get(puzzleIndex).getPuzzleLocation().equals(player.getPlayerLocation()) && puzzleArrayList.get(puzzleIndex).getPuzzleIsSolved().equals(false)) {
+			if (puzzleArrayList.get(puzzleIndex).getPuzzleLocation().equals(player.getPlayerLocation()) && puzzleArrayList.get(puzzleIndex).getPuzzleIsLocked().equals(false)) {
 				puzzleFound = true;
 				somethingFound = true;
 				
 				for (int itemIndex = 0; itemIndex < itemArrayList.size(); itemIndex++) {
 					if (itemArrayList.get(itemIndex).getItemLocation().equals(player.getPlayerLocation())) {			
 						if (puzzleArrayList.get(puzzleIndex).getPuzzleAttempts() > 0) {
+							
 							gameBox.getChildren().clear();
 							displayPuzzleFoundScene(primaryStage, gameBox, puzzleIndex, itemIndex, userInputTextField);
 						}
@@ -744,16 +1036,16 @@ public class Main extends Application {
 							somethingFound = false;
 						}
 					}
-				
 				}
 			}
 		}
 		
 		// If puzzle is not found
 		// It does not mean an item is not
-		if (puzzleFound == false) {
+		if (puzzleFound == false && monsterFound == false) {
 			for (int itemIndex = 0; itemIndex < itemArrayList.size(); itemIndex++) {
-				if (itemArrayList.get(itemIndex).getItemLocation().equals(player.getPlayerLocation()) && itemArrayList.get(itemIndex).getItemIsPickedUp().equals(false)) {
+				if (itemArrayList.get(itemIndex).getItemLocation().equals(player.getPlayerLocation()) && (itemArrayList.get(itemIndex).getItemIsPickedUp().equals(false) && itemArrayList.get(itemIndex).getItemIsLocked().equals(false))) {
+					
 					gameBox.getChildren().clear();
 					displayItemFoundScene(primaryStage, gameBox, itemIndex, userInputTextField, "You found an item!");
 					somethingFound = true;
@@ -763,29 +1055,638 @@ public class Main extends Application {
 		
 		// If nothing is found
 		if (somethingFound == false) {
-			Text nothingHereMessage = new Text("Nothing here...");
-			nothingHereMessage.setTextAlignment(TextAlignment.CENTER);
-			
-			VBox nothingHereBox = new VBox(10);
-			nothingHereBox.setAlignment(Pos.CENTER);
-			
-			Button okButton = new Button("OK");
-			
-			nothingHereBox.getChildren().add(nothingHereMessage);
-			nothingHereBox.getChildren().add(emojiImageView_2);
-			nothingHereBox.getChildren().add(okButton);
-			
-			Scene nothingHereScene = new Scene(nothingHereBox, 200, 100);
-			Stage nothingHereStage = new Stage();
-			
-			nothingHereStage.setScene(nothingHereScene);
-			nothingHereStage.show();
-			nothingHereStage.setTitle("Nothing here");
-			
-			okButton.setOnAction(e -> {
-				nothingHereStage.close();
-			});
+			if (invalidStage.isShowing()) {
+				invalidStage.close();
+				player.displayInvalidCommandMessage("nothing here", emojiImageView_2, primaryStage, invalidStage);
+			}
+			else {
+				player.displayInvalidCommandMessage("nothing here", emojiImageView_2, primaryStage, invalidStage);
+			}
 		}
+	}
+	
+	// 
+	public void displayMonsterFoundScene(Stage primaryStage, GridPane gameBox, int monsterIndex, TextField userInputTextField) {
+		Text youFoundMonster= new Text(monsterArrayList.get(monsterIndex).getMonsterName() + " is ready to fight!");
+		youFoundMonster.setStyle("-fx-font-size: 18px;" +
+				  				 "-fx-font-weight: bold");
+		
+		Text monsterFound = new Text("What will you do?");
+		monsterFound.setStyle("-fx-font-size: 18px;" +
+ 				 "-fx-font-weight: bold");
+		
+		if (!gameBox.getChildren().contains(logoImageView)) {
+			gameBox.add(logoImageView, 0, 0);
+		}
+		if (!gameBox.getChildren().contains(youFoundMonster)) {
+			gameBox.add(youFoundMonster, 0, 1);
+		}
+		if (!gameBox.getChildren().contains(monsterFound)) {
+			gameBox.add(monsterFound, 0, 2);
+		}
+		if (!gameBox.getChildren().contains(userInputTextField)) {
+			gameBox.add(userInputTextField, 0, 4);
+		}
+
+		try {
+			ImageView gif = new ImageView(new Image(new FileInputStream(monsterPathGif.get(monsterIndex))));
+			gif.setFitWidth(250);
+			gif.setFitHeight(150);
+			gameBox.add(gif, 0, 3);
+			GridPane.setHalignment(gif, HPos.CENTER);
+			
+		} catch (FileNotFoundException f) {
+			f.printStackTrace();
+		}
+		
+		GridPane.setHalignment(logoImageView, HPos.CENTER);
+		GridPane.setHalignment(youFoundMonster, HPos.CENTER);
+		GridPane.setHalignment(monsterFound, HPos.CENTER);
+		GridPane.setHalignment(userInputTextField, HPos.CENTER);
+		
+		primaryStage.setTitle("Monster Encountered");
+		
+		userInputTextField.setOnKeyPressed(e -> {
+			if (e.getCode().equals(KeyCode.ENTER)) {
+				userInputCommand = userInputTextField.getText().toLowerCase();
+								
+				if (userInputCommand.equals("ignore") || userInputCommand.equals("ignore monster") || userInputCommand.equals("ignore " + monsterArrayList.get(monsterIndex).getMonsterName().toLowerCase()) ||
+						userInputCommand.equals("run") || userInputCommand.equals("run away") || userInputCommand.equals("flee") || userInputCommand.equals("escape")) {
+					showStartGameScene(primaryStage);
+				}
+				else if (userInputCommand.equals("examine") || userInputCommand.equals("examine monster") || userInputCommand.equals("examine " + monsterArrayList.get(monsterIndex).getMonsterName().toLowerCase())) {
+					monsterExamineCommand(primaryStage, monsterStage, emojiImageView_3, monsterIndex);
+				}
+				else if (userInputCommand.equals("fight") || userInputCommand.equals("fight monster") || userInputCommand.equals("fight " + monsterArrayList.get(monsterIndex).getMonsterName().toLowerCase()) || 
+						 userInputCommand.equals("attack") || userInputCommand.equals("attack monster") || userInputCommand.equals("attack " + monsterArrayList.get(monsterIndex).getMonsterName().toLowerCase()) || 
+						 userInputCommand.equals("hit") || userInputCommand.equals("hit monster") || userInputCommand.equals("hit " + monsterArrayList.get(monsterIndex).getMonsterName().toLowerCase())) {
+					gameBox.getChildren().clear();
+					displayMonsterFightScene(primaryStage, gameBox, monsterIndex, userInputTextField);
+				}
+				else if (userInputCommand.equals("help")) {
+					if (!monsterHelpStage.isShowing())
+						player.helpCommand(monsterHelpStage, monsterHelpImageView, screenBounds, "Monster Help");
+				}
+				else if (userInputCommand.equals("commands") || userInputCommand.equals("command list")) {
+					if (!commandListStage.isShowing())
+						player.helpCommand(commandListStage, commandListImageView, screenBounds, "Command List");
+				}
+				else if (userInputTextField.getText().equals("check inventory") || userInputTextField.getText().equals("look inventory") || userInputTextField.getText().equals("inventory") || userInputTextField.getText().equals("i")) {
+					if (player.getPlayerInventory().size() < 1 && player.getPlayerEquipment().size() < 1) {
+						if (invalidStage.isShowing()) {
+							invalidStage.close();
+							player.displayInvalidCommandMessage("empty inventory", emojiImageView_2, primaryStage, invalidStage);
+						}
+						else {
+							player.displayInvalidCommandMessage("empty inventory", emojiImageView_2, primaryStage, invalidStage);
+						}
+					}
+					if (!playerInventoryStage.isShowing()) 
+						player.playerChecksInventory(player, itemArrayList, emojiImageView_2, emojiImageView_3, generalCommandList, map.roomArrayList, playerInventoryStage, primaryStage, 
+								tableView1, screenBounds, commandListStage, inventoryHelpStage, commandListImageView, inventoryHelpImageView, invalidStage, inventoryTextField);
+				}
+				else if (player.validateCommand(userInputCommand, generalCommandList).equals(false)) {
+					if (userInputCommand.equals("move")) {
+						if (invalidStage.isShowing()) {
+							invalidStage.close();
+							player.displayInvalidCommandMessage("scenario command", emojiImageView_1, primaryStage, invalidStage);
+						}
+						else {
+							player.displayInvalidCommandMessage("scenario command", emojiImageView_1, primaryStage, invalidStage);
+						}
+					}
+					else {
+						if (invalidStage.isShowing()) {
+							invalidStage.close();
+							player.displayInvalidCommandMessage(userInputCommand, emojiImageView_1, primaryStage, invalidStage);
+						}
+						else {
+							player.displayInvalidCommandMessage(userInputCommand, emojiImageView_1, primaryStage, invalidStage);
+						}
+					}
+				}
+				else {
+					if (invalidStage.isShowing()) {
+						invalidStage.close();
+						player.displayInvalidCommandMessage("scenario command", emojiImageView_2, primaryStage, invalidStage);
+					}
+					else {
+						player.displayInvalidCommandMessage("scenario command", emojiImageView_2, primaryStage, invalidStage);
+					}
+				}
+				userInputTextField.clear();
+			}
+		});
+	}
+	
+	//
+	public void displayMonsterFightScene(Stage primaryStage, GridPane gameBox, int monsterIndex, TextField userInputTextField) {
+		Text fight = new Text("Fighting Monster...");
+		fight.setStyle("-fx-font-size: 20px;" +
+					   "-fx-font-weight: bold");
+		
+		GridPane fightPane = new GridPane();
+		fightPane.setVgap(10);
+		fightPane.setHgap(50);
+		fightPane.setAlignment(Pos.CENTER);
+		
+		fightPane.setStyle("-fx-padding: 10;" + 
+        				   "-fx-border-style: solid inside;" + 
+        				   "-fx-border-width: 2;" +
+        				   "-fx-border-insets: 5;" + 
+        				   "-fx-border-radius: 5;" + 
+						   "-fx-border-color: black;");		
+		
+		Label monster = new Label(monsterArrayList.get(monsterIndex).getMonsterName());
+		Label playerL = new Label(player.getPlayerUsername());
+		Label vs = new Label("VS.");
+		
+		Text m1 = new Text("Monster's Health: " + monsterArrayList.get(monsterIndex).getMonsterCurrentHealth() + "/" + monsterArrayList.get(monsterIndex).getMonsterTotalHealth());
+		Text m2 = new Text("Monster's Attack: " + monsterArrayList.get(monsterIndex).getMonsterMinAttack() + "-" + monsterArrayList.get(monsterIndex).getMonsterMaxAttack());
+		Text m3 = new Text("Monster's Defense: " + monsterArrayList.get(monsterIndex).getMonsterDefense());
+		
+		
+		Text p1 = new Text("Your health: " + player.getPlayerCurrentHealth() + "/" + player.getPlayerTotalHealth());
+		Text p2 = new Text("Your attack: " + player.getPlayerMinAttack() + "-" + player.getPlayerMaxAttack());
+		Text p3 = new Text("Your defense: " + player.getPlayerDefense());
+		
+		
+		monster.setStyle("-fx-font-size: 18px;" +
+				"-fx-font-weight: bold");
+		playerL.setStyle("-fx-font-size: 18px;" +
+				"-fx-font-weight: bold");
+		vs.setStyle("-fx-font-size: 18px;" +
+				"-fx-font-weight: bold");
+		
+		m1.setStyle("-fx-font-size: 15px;");
+		m2.setStyle("-fx-font-size: 15px;");
+		m3.setStyle("-fx-font-size: 15px;");
+		
+		p1.setStyle("-fx-font-size: 15px;");
+		p2.setStyle("-fx-font-size: 15px;");
+		p3.setStyle("-fx-font-size: 15px;");
+		
+		GridPane.setHalignment(m1, HPos.CENTER);
+		GridPane.setHalignment(m2, HPos.CENTER);
+		GridPane.setHalignment(m3, HPos.CENTER);
+		
+		GridPane.setHalignment(p1, HPos.CENTER);
+		GridPane.setHalignment(p2, HPos.CENTER);
+		GridPane.setHalignment(p3, HPos.CENTER);
+		
+		fightPane.add(monster, 0, 0);
+		fightPane.add(vs, 1, 0);
+		fightPane.add(playerL, 2, 0);
+		
+		fightPane.add(m1, 0, 1);
+		fightPane.add(m2, 0, 2);
+		fightPane.add(m3, 0, 3);
+		
+		fightPane.add(p1, 2, 1);
+		fightPane.add(p2, 2, 2);
+		fightPane.add(p3, 2, 3);
+		
+		gameBox.add(logoImageView, 0, 0);
+		gameBox.add(fight, 0, 1);
+		gameBox.add(fightingImageView, 0, 2);
+		gameBox.add(fightPane, 0, 3);
+		gameBox.add(userInputTextField, 0, 4);
+		
+		GridPane.setHalignment(logoImageView, HPos.CENTER);
+		GridPane.setHalignment(fightingImageView, HPos.CENTER);
+		GridPane.setHalignment(fight, HPos.CENTER);
+		GridPane.setHalignment(monster, HPos.CENTER);
+		GridPane.setHalignment(playerL, HPos.CENTER);
+		GridPane.setHalignment(vs, HPos.CENTER);
+		GridPane.setHalignment(userInputTextField, HPos.CENTER);
+		
+		primaryStage.setTitle("Fighting Monster");
+		
+		userInputTextField.setOnKeyPressed(e -> {
+			if (e.getCode().equals(KeyCode.ENTER)) {
+				
+				int playerDamage = 0;
+				int monsterDamage = 0;
+				Boolean monsterAlive = true;
+				
+				userInputCommand = userInputTextField.getText().toLowerCase();
+				
+				if (userInputCommand.equals("ignore") || userInputCommand.equals("ignore monster") || userInputCommand.equals("ignore " + monsterArrayList.get(monsterIndex).getMonsterName().toLowerCase()) ||
+						userInputCommand.equals("run") || userInputCommand.equals("run away") || userInputCommand.equals("flee") || userInputCommand.equals("escape")) {
+					showStartGameScene(primaryStage);
+				}
+				else if (userInputCommand.equals("fight") || userInputCommand.equals("fight monster") || userInputCommand.equals("fight " + monsterArrayList.get(monsterIndex).getMonsterName().toLowerCase()) || 
+						 userInputCommand.equals("attack") || userInputCommand.equals("attack monster") || userInputCommand.equals("attack " + monsterArrayList.get(monsterIndex).getMonsterName().toLowerCase()) || 
+						 userInputCommand.equals("hit") || userInputCommand.equals("hit monster") || userInputCommand.equals("hit " + monsterArrayList.get(monsterIndex).getMonsterName().toLowerCase())) {
+
+					// NewMonsterHealth = CurrentMonsterHealth - (playerDamage - monsterDefense)
+					playerDamage = (int)((Math.random()*(player.getPlayerMaxAttack()-player.getPlayerMinAttack()+1)+player.getPlayerMinAttack()) - monsterArrayList.get(monsterIndex).getMonsterDefense());
+					if (playerDamage <= 0)
+						playerDamage = 0;
+					monsterArrayList.get(monsterIndex).setMonsterCurrentHealth(monsterArrayList.get(monsterIndex).getMonsterCurrentHealth()-playerDamage);
+					
+					// Monster is Defeated
+					if (monsterArrayList.get(monsterIndex).getMonsterCurrentHealth() <= 0) {
+						monsterArrayList.get(monsterIndex).setMonsterCurrentHealth(0);
+						monsterArrayList.get(monsterIndex).setMonsterIsDefeated(true);
+						displayMonsterAttacked(primaryStage, monsterIndex, emojiImageView_3, playerDamage, monsterDamage, monsterArrayList.get(monsterIndex).getMonsterIsDefeated(), player.getPlayerCurrentHealth(), soundEffect_2);
+						monsterAlive = false;
+						//showStartGameScene(primaryStage);
+					}
+					
+					m1.setText("Monster's Health: " + monsterArrayList.get(monsterIndex).getMonsterCurrentHealth() + "/" + monsterArrayList.get(monsterIndex).getMonsterTotalHealth());
+					
+					if (monsterAlive.equals(true)) {
+						// NewPlayerHealth = CurrentPlayerHealth - (monsterDamage - playerDefense)
+						monsterDamage = (int)((Math.random()*(monsterArrayList.get(monsterIndex).getMonsterMaxAttack()-monsterArrayList.get(monsterIndex).getMonsterMinAttack()+1)+monsterArrayList.get(monsterIndex).getMonsterMinAttack()) - player.getPlayerDefense());
+						if (monsterDamage <= 0)
+							monsterDamage = 0;
+						player.setPlayerCurrentHealth(player.getPlayerCurrentHealth()-monsterDamage);
+					
+						// Player is defeated
+						if (player.getPlayerCurrentHealth() <= 0) {
+							player.setPlayerCurrentHealth(0);
+							displayMonsterAttacked(primaryStage, monsterIndex, emojiImageView_2, playerDamage, monsterDamage, monsterArrayList.get(monsterIndex).getMonsterIsDefeated(), player.getPlayerCurrentHealth(), soundEffect_3);
+						}
+					
+						p1.setText("Your health: " + player.getPlayerCurrentHealth() + "/" + player.getPlayerTotalHealth());
+						p2.setText("Your attack: " + player.getPlayerMinAttack() + "-" + player.getPlayerMaxAttack());
+						p3.setText("Your defense: " + player.getPlayerDefense());
+					}
+					
+					if (monsterArrayList.get(monsterIndex).getMonsterCurrentHealth() > 0 && player.getPlayerCurrentHealth() > 0) {
+						displayMonsterAttacked(primaryStage, monsterIndex, emojiImageView_3, playerDamage, monsterDamage, monsterArrayList.get(monsterIndex).getMonsterIsDefeated(), player.getPlayerCurrentHealth(), soundEffect_1);
+					}
+				}
+				else if (userInputCommand.equals("update") || userInputCommand.equals("refresh") || userInputCommand.equals("stats")) {
+					p1.setText("Your health: " + player.getPlayerCurrentHealth() + "/" + player.getPlayerTotalHealth());
+					p2.setText("Your attack: " + player.getPlayerMinAttack() + "-" + player.getPlayerMaxAttack());
+					p3.setText("Your defense: " + player.getPlayerDefense());
+				}
+				else if (userInputCommand.equals("help")) {
+					if (!puzzleHelpStage.isShowing())
+						player.helpCommand(puzzleHelpStage, puzzleHelpImageView, screenBounds, "Puzzle Help");
+				}
+				else if (userInputCommand.equals("commands") || userInputCommand.equals("command list")) {
+					if (!commandListStage.isShowing())
+						player.helpCommand(commandListStage, commandListImageView, screenBounds, "Command List");
+				}
+				else if (userInputTextField.getText().equals("check inventory") || userInputTextField.getText().equals("look inventory") || userInputTextField.getText().equals("inventory") || userInputTextField.getText().equals("i")) {
+					if (player.getPlayerInventory().size() < 1 && player.getPlayerEquipment().size() < 1) {
+						if (invalidStage.isShowing()) {
+							invalidStage.close();
+							player.displayInvalidCommandMessage("empty inventory", emojiImageView_2, primaryStage, invalidStage);
+						}
+						else {
+							player.displayInvalidCommandMessage("empty inventory", emojiImageView_2, primaryStage, invalidStage);
+						}
+					}
+					if (!playerInventoryStage.isShowing()) 
+						player.playerChecksInventory(player, itemArrayList, emojiImageView_2, emojiImageView_3, generalCommandList, map.roomArrayList, playerInventoryStage, primaryStage, 
+								tableView1, screenBounds, commandListStage, inventoryHelpStage, commandListImageView, inventoryHelpImageView, invalidStage, inventoryTextField);
+				}
+				else if (player.validateCommand(userInputCommand, generalCommandList).equals(false)) {
+					if (userInputCommand.equals("move")) {
+						if (invalidStage.isShowing()) {
+							invalidStage.close();
+							player.displayInvalidCommandMessage("scenario command", emojiImageView_1, primaryStage, invalidStage);
+						}
+						else {
+							player.displayInvalidCommandMessage("scenario command", emojiImageView_1, primaryStage, invalidStage);
+						}
+					}
+					else {
+						if (invalidStage.isShowing()) {
+							invalidStage.close();
+							player.displayInvalidCommandMessage(userInputCommand, emojiImageView_1, primaryStage, invalidStage);
+						}
+						else {
+							player.displayInvalidCommandMessage(userInputCommand, emojiImageView_1, primaryStage, invalidStage);
+						}
+					}
+				}
+				else {
+					if (invalidStage.isShowing()) {
+						invalidStage.close();
+						player.displayInvalidCommandMessage("scenario command", emojiImageView_2, primaryStage, invalidStage);
+					}
+					else {
+						player.displayInvalidCommandMessage("scenario command", emojiImageView_2, primaryStage, invalidStage);
+					}
+				}
+				
+				
+				userInputTextField.clear();
+			}
+		});
+	}
+	
+	//
+	public void displayMonsterAttacked(Stage primaryStage, int monsterIndex, ImageView emoji, int playerDamage, int monsterDamage, Boolean monsterIsDefeated, int playerHealth, AudioClip sound) {
+		Text m = new Text("You dealt " + playerDamage + " damage to " + monsterArrayList.get(monsterIndex).getMonsterName() + "!");
+		m.setStyle("-fx-font-size: 15px;" +
+				   "-fx-font-weight: bold");
+		
+		VBox attackBox = new VBox(10);
+		attackBox.setAlignment(Pos.CENTER);
+		
+		attackBox.getChildren().add(m);
+		
+		if (!monsterIsDefeated) {
+			Text p = new Text(monsterArrayList.get(monsterIndex).getMonsterName() + " dealt you " + monsterDamage + " damage!");
+			p.setStyle("-fx-font-size: 15px;" +
+					   "-fx-font-weight: bold");
+			
+			attackBox.getChildren().add(p);
+		}
+		else {
+			Text d = new Text(monsterArrayList.get(monsterIndex).getMonsterName() + " has been defeated!");
+			d.setStyle("-fx-font-size: 15px;" +
+					   "-fx-font-weight: bold");
+			
+			attackBox.getChildren().add(d);
+			
+			sound.play();
+		}
+		
+		Button okButton = new Button("OK");
+		
+		attackBox.getChildren().add(emoji);
+		attackBox.getChildren().add(okButton);
+		
+		Scene attackScene = new Scene(attackBox, 300, 150);
+		Stage attackStage = new Stage();
+		
+		attackStage.setX(primaryStage.getX() + (primaryStage.getWidth() - attackScene.getWidth())/2);
+		attackStage.setY(primaryStage.getY() + (primaryStage.getHeight() - attackScene.getHeight())/2);
+		
+		attackStage.setScene(attackScene);
+		attackStage.show();
+		attackStage.setTitle("Monster attacked");
+
+		attackStage.setOnCloseRequest(e -> {
+			if (playerHealth <=0) {
+				displayDeathMessage(primaryStage, sound, emoji);
+			}
+			else if (monsterArrayList.get(7).getMonsterIsDefeated().equals(true)) {
+				displayWinMessage1(primaryStage, emoji, wakingUpImageView);
+			}
+			else if (monsterArrayList.get(monsterIndex).getMonsterCurrentHealth() <= 0){
+				showStartGameScene(primaryStage);
+			}
+		});
+		
+		// If ok button pressed
+		okButton.setOnAction(f -> {
+			sound.stop();
+			attackStage.close();
+			
+			if (playerHealth <= 0) {
+				displayDeathMessage(primaryStage, sound, emoji);
+			}
+			else if (monsterArrayList.get(7).getMonsterIsDefeated().equals(true)) {
+				displayWinMessage1(primaryStage, emoji, wakingUpImageView);
+			}
+			else if (monsterArrayList.get(monsterIndex).getMonsterCurrentHealth() <= 0){
+				showStartGameScene(primaryStage);
+			}
+		});
+	}
+	
+	
+	// 
+	public void displayWinMessage1(Stage primaryStage, ImageView emoji, ImageView gif) {
+		VBox box = new VBox(10);
+		box.setAlignment(Pos.CENTER);
+		
+		Text a = new Text("You did it!");
+		Text b = new Text("You have defeated the Final Boss");
+		Text c = new Text("and woke up of this nightmare!");
+		
+		a.setStyle("-fx-font-size: 13px;" +
+				   "-fx-font-weight: bold");
+		b.setStyle("-fx-font-size: 13px;" +
+				   "-fx-font-weight: bold");
+		c.setStyle("-fx-font-size: 13px;" +
+				   "-fx-font-weight: bold");
+		
+		Button okButton = new Button("OK");
+		
+		soundEffect_5.play();
+		
+		box.getChildren().add(a);
+		box.getChildren().add(b);
+		box.getChildren().add(c);
+		box.getChildren().add(gif);
+		box.getChildren().add(okButton);
+		
+		Scene winScene = new Scene(box, 350, 380);
+		Stage winStage = new Stage();
+		
+		winStage.setX(primaryStage.getX() + (primaryStage.getWidth() - winScene.getWidth())/2);
+		winStage.setY(primaryStage.getY() + (primaryStage.getHeight() - winScene.getHeight())/2);
+		
+		winStage.setScene(winScene);
+		winStage.show();
+		winStage.setTitle("You won");
+
+		winStage.setOnCloseRequest(e -> {
+			soundEffect_5.stop();
+			displayWinMessage2(primaryStage, emoji);
+		});
+		
+		// If ok button pressed
+		okButton.setOnAction(f -> {
+			soundEffect_5.stop();
+			winStage.close();
+			displayWinMessage2(primaryStage, emoji);
+		});
+	}
+	
+	// 
+	public void displayWinMessage2(Stage primaryStage, ImageView emoji) {
+		VBox box = new VBox(10);
+		box.setAlignment(Pos.CENTER);
+		
+		player.setPlayerScore(player.getPlayerScore() + 1000);
+		
+		Text a = new Text("Your final score is: " + player.getPlayerScore());
+		Text b = new Text("Going back to start menu");
+		
+		a.setStyle("-fx-font-size: 13px;" +
+				   "-fx-font-weight: bold");
+		b.setStyle("-fx-font-size: 13px;" +
+				   "-fx-font-weight: bold");
+		
+		Button okButton = new Button("OK");
+		
+		box.getChildren().add(a);
+		box.getChildren().add(b);
+		box.getChildren().add(okButton);
+		
+		Scene winScene = new Scene(box, 300, 150);
+		Stage winStage = new Stage();
+		
+		winStage.setX(primaryStage.getX() + (primaryStage.getWidth() - winScene.getWidth())/2);
+		winStage.setY(primaryStage.getY() + (primaryStage.getHeight() - winScene.getHeight())/2);
+		
+		winStage.setScene(winScene);
+		winStage.show();
+		winStage.setTitle("You won");
+		
+		winStage.setOnCloseRequest(e -> {
+			try {
+				start(primaryStage);
+			}
+			catch (Exception g) {
+				;
+			}
+		});
+		
+		// If ok button pressed
+		okButton.setOnAction(f -> {
+			winStage.close();
+			
+			try {
+				start(primaryStage);
+			}
+			catch (Exception g) {
+				;
+			}
+		});
+	}
+	
+	// 
+	public void displayDeathMessage(Stage primaryStage, AudioClip sound, ImageView emoji) {
+		VBox b = new VBox(10);
+		b.setAlignment(Pos.CENTER);
+		
+		Text d = new Text("You died!");
+		Text s = new Text("Your final score is: " + player.getPlayerScore());
+		Text m = new Text("Going back to start manu");
+		
+		d.setStyle("-fx-font-size: 13px;" +
+				   "-fx-font-weight: bold");
+		s.setStyle("-fx-font-size: 13px;" +
+				   "-fx-font-weight: bold");
+		m.setStyle("-fx-font-size: 13px;" +
+				   "-fx-font-weight: bold");
+		
+		
+		Button okButton = new Button("OK");
+		
+		sound.play();
+		
+		b.getChildren().add(d);
+		b.getChildren().add(s);
+		b.getChildren().add(m);
+		b.getChildren().add(emoji);
+		b.getChildren().add(okButton);
+		
+		Scene deathScene = new Scene(b, 350, 150);
+		Stage deathStage = new Stage();
+		
+		deathStage.setX(primaryStage.getX() + (primaryStage.getWidth() - deathScene.getWidth())/2);
+		deathStage.setY(primaryStage.getY() + (primaryStage.getHeight() - deathScene.getHeight())/2);
+		
+		deathStage.setScene(deathScene);
+		deathStage.show();
+		deathStage.setTitle("You died");
+		
+		deathStage.setOnCloseRequest(e -> {
+			try {
+				start(primaryStage);
+			}
+			catch (Exception g) {
+				;
+			}
+		});
+		
+		// If ok button pressed
+		okButton.setOnAction(f -> {
+			sound.stop();
+			deathStage.close();
+			
+			try {
+				start(primaryStage);
+			}
+			catch (Exception g) {
+				;
+			}
+		});
+	}
+	
+	// 
+	public void monsterExamineCommand(Stage primaryStage, Stage monsterStage, ImageView emoji, int monsterIndex) {
+		Label l = new Label("Monster Description: " + monsterArrayList.get(monsterIndex).getMonsterName());
+		l.setStyle("-fx-font-size: 18px;" +
+				   "-fx-font-weight: bold");
+		
+		Text commandMessage = new Text(monsterArrayList.get(monsterIndex).getMonsterDescription1() + "\n" + monsterArrayList.get(monsterIndex).getMonsterDescription2() + "\n" + monsterArrayList.get(monsterIndex).getMonsterDescription3() + "\n\n" +
+				"Monster's Health: " + monsterArrayList.get(monsterIndex).getMonsterCurrentHealth() + "/" + monsterArrayList.get(monsterIndex).getMonsterTotalHealth() + "\nMonster's Attack: " + monsterArrayList.get(monsterIndex).getMonsterMinAttack() + 
+				"-" + monsterArrayList.get(monsterIndex).getMonsterMaxAttack() + "\nMonster's Defense: " + monsterArrayList.get(monsterIndex).getMonsterDefense());
+		commandMessage.setTextAlignment(TextAlignment.CENTER);
+		
+		VBox commandBox = new VBox(10);
+		commandBox.setAlignment(Pos.CENTER);
+			
+		Button okButton = new Button("OK");
+		
+		Scene itemCommandScene = new Scene(commandBox, 500, 250);
+		monsterStage.setTitle("Monster Description");
+		
+		commandBox.getChildren().add(l);
+		commandBox.getChildren().add(commandMessage);
+		commandBox.getChildren().add(emoji);
+		commandBox.getChildren().add(okButton);
+		
+		itemStage.setResizable(false);
+		
+		itemStage.setX(primaryStage.getX() + (primaryStage.getWidth() - itemCommandScene.getWidth())/2);
+		itemStage.setY(primaryStage.getY() + (primaryStage.getHeight() - itemCommandScene.getHeight())/2);
+		
+		itemStage.setScene(itemCommandScene);
+		itemStage.show();
+		
+		okButton.setOnAction(f -> {
+			itemStage.close();
+		});
+	}
+	
+	// This function automatically displays when 
+	// the player enters a monster's room!	
+	public void checkForMonster(Stage primaryStage, int monsterIndex) {
+		String index = monsterArrayList.get(monsterIndex).getMonsterID();	
+		int indexLocation = Integer.parseInt(index.substring(1))-1;
+	
+		Media media = new Media(new File(monsterPathVideo.get(indexLocation)).toURI().toString());
+		MediaPlayer mediaPlayer = new MediaPlayer(media);
+		MediaView mediaView = new MediaView(mediaPlayer);
+		
+		// This binds the video with the size of the window
+		DoubleProperty width = mediaView.fitWidthProperty();
+        DoubleProperty height = mediaView.fitHeightProperty();
+		
+		width.bind(Bindings.selectDouble(mediaView.sceneProperty(), "width"));
+        height.bind(Bindings.selectDouble(mediaView.sceneProperty(), "height"));
+	    mediaView.setPreserveRatio(false);
+        
+        // Play as soon as the player enters the room
+		mediaView.setVisible(true);
+		mediaPlayer.setAutoPlay(true);
+		
+		// When the media ends, go back to the text
+		mediaPlayer.setOnEndOfMedia(() -> {
+			mediaView.setVisible(false); 
+			showStartGameScene(primaryStage);
+		});    
+		
+		Group group = new Group();
+		
+		group.getChildren().add(mediaView);
+		monsterVideoScene = new Scene(group, screenBounds.getWidth()/2, screenBounds.getHeight());
+		primaryStage.setTitle("Video");
+		primaryStage.setScene(monsterVideoScene);
 	}
 	
 	// This function asks the player what he/she would like to do with the item
@@ -808,10 +1709,6 @@ public class Main extends Application {
 		if (!gameBox.getChildren().contains(userInputTextField)) {
 			gameBox.add(userInputTextField, 0, 3);
 		}
-		//gameBox.add(logoImageView, 0, 0);
-		//gameBox.add(youFoundItem, 0, 1);
-		//gameBox.add(itemFound, 0, 2);
-		//gameBox.add(userInputTextField, 0, 3);
 		
 		GridPane.setHalignment(logoImageView, HPos.CENTER);
 		GridPane.setHalignment(youFoundItem, HPos.CENTER);
@@ -822,8 +1719,7 @@ public class Main extends Application {
 		
 		userInputTextField.setOnKeyPressed(e -> {
 			if (e.getCode().equals(KeyCode.ENTER)) {
-				userInputCommand = userInputTextField.getText();
-				userInputCommand = userInputCommand.toLowerCase();
+				userInputCommand = userInputTextField.getText().toLowerCase();
 				
 				if (userInputCommand.equals("ignore") || userInputCommand.equals("ignore item") || userInputCommand.equals("ignore " + itemArrayList.get(itemIndex).getItemName().toLowerCase())) {
 					showStartGameScene(primaryStage);
@@ -831,68 +1727,141 @@ public class Main extends Application {
 				else if (userInputCommand.equals("pick up") || userInputCommand.equals("pick up item") || userInputCommand.equals("pick up " + itemArrayList.get(itemIndex).getItemName().toLowerCase()) || 
 						 userInputCommand.equals("store") || userInputCommand.equals("store item") || userInputCommand.equals("store " + itemArrayList.get(itemIndex).getItemName().toLowerCase())) {
 					itemArrayList.get(itemIndex).setItemIsPickedUp(true);
+					
 					player.getPlayerInventory().add(itemArrayList.get(itemIndex));
-					itemCommandAction(primaryStage, itemArrayList.get(itemIndex).getItemName() + " is now in your inventory!", emojiImageView_3, true);
+					
+					// Updates inventory table if open
+					if (playerInventoryStage.isShowing()) {
+						tableView1.setItems(player.getItems(player));
+					}
+					
+					// Updates item images in map
+					if (playerMapStage.isShowing()) {
+						double x = playerMapStage.getX();
+						double y = playerMapStage.getY();
+						
+						playerMapStage.close();
+						player.displayMap(player, playerMapStage, mapImageView, locationImageView, puzzleImage, itemImage, monsterImage, puzzleArrayList, itemArrayList, monsterArrayList);
+						
+						playerMapStage.setX(x);
+						playerMapStage.setY(y);
+					}
+					if (itemStage.isShowing()) {
+						itemStage.close();
+						itemCommandAction(primaryStage, itemArrayList.get(itemIndex).getItemName() + " is now in your inventory!", emojiImageView_3, true, itemStage, itemArrayList.get(itemIndex).getItemName());					
+					}
+					else {
+						itemCommandAction(primaryStage, itemArrayList.get(itemIndex).getItemName() + " is now in your inventory!", emojiImageView_3, true, itemStage, itemArrayList.get(itemIndex).getItemName());					
+					}
 				}
 				else if (userInputCommand.equals("examine") || userInputCommand.equals("examine item") || userInputCommand.equals("examine " + itemArrayList.get(itemIndex).getItemName().toLowerCase())) {
-					itemCommandAction(primaryStage, itemArrayList.get(itemIndex).getItemDescription(), emojiImageView_4, false);
+					if (itemStage.isShowing()) {
+						itemStage.close();
+						itemCommandAction(primaryStage, itemArrayList.get(itemIndex).getItemDescription() + "\n\nBonus Health: " + itemArrayList.get(itemIndex).getItemHealthAmount() + "\nBonus Attack: " + itemArrayList.get(itemIndex).getItemAttackAmount() + "\nBonus Defense: " + itemArrayList.get(itemIndex).getItemDefenseAmount(), emojiImageView_4, false, itemStage, itemArrayList.get(itemIndex).getItemName());
+					}
+					else {
+						itemCommandAction(primaryStage, itemArrayList.get(itemIndex).getItemDescription() + "\n\nBonus Health: " + itemArrayList.get(itemIndex).getItemHealthAmount() + "\nBonus Attack: " + itemArrayList.get(itemIndex).getItemAttackAmount() + "\nBonus Defense: " + itemArrayList.get(itemIndex).getItemDefenseAmount(), emojiImageView_4, false, itemStage, itemArrayList.get(itemIndex).getItemName());
+					}
 				}
 				else if (userInputCommand.equals("help")) {
-					
+					if (!itemHelpStage.isShowing())
+						player.helpCommand(itemHelpStage, itemHelpImageView, screenBounds, "Item Help");
+				}
+				else if (userInputCommand.equals("commands") || userInputCommand.equals("command list")) {
+					if (!commandListStage.isShowing())
+						player.helpCommand(commandListStage, commandListImageView, screenBounds, "Command List");
+				}
+				else if (userInputTextField.getText().equals("check inventory") || userInputTextField.getText().equals("look inventory") || userInputTextField.getText().equals("inventory") || userInputTextField.getText().equals("i")) {
+					if (player.getPlayerInventory().size() < 1 && player.getPlayerEquipment().size() < 1) {
+						if (invalidStage.isShowing()) {
+							invalidStage.close();
+							player.displayInvalidCommandMessage("empty inventory", emojiImageView_2, primaryStage, invalidStage);
+						}
+						else {
+							player.displayInvalidCommandMessage("empty inventory", emojiImageView_2, primaryStage, invalidStage);
+						}
+					}
+					if (!playerInventoryStage.isShowing()) 
+						player.playerChecksInventory(player, itemArrayList, emojiImageView_2, emojiImageView_3, generalCommandList, map.roomArrayList, playerInventoryStage, primaryStage, 
+								tableView1, screenBounds, commandListStage, inventoryHelpStage, commandListImageView, inventoryHelpImageView, invalidStage, inventoryTextField);
 				}
 				// This function validates the command, if false, display invalid command message
 				else if (player.validateCommand(userInputCommand, generalCommandList).equals(false)) {
-					player.displayInvalidCommandMessage(userInputCommand, emojiImageView_1);
+					if (userInputCommand.equals("move")) {
+						if (invalidStage.isShowing()) {
+							invalidStage.close();
+							player.displayInvalidCommandMessage("scenario command", emojiImageView_1, primaryStage, invalidStage);
+						}
+						else {
+							player.displayInvalidCommandMessage("scenario command", emojiImageView_1, primaryStage, invalidStage);
+						}
+					}
+					else {
+						if (invalidStage.isShowing()) {
+							invalidStage.close();
+							player.displayInvalidCommandMessage(userInputCommand, emojiImageView_1, primaryStage, invalidStage);
+						}
+						else {
+							player.displayInvalidCommandMessage(userInputCommand, emojiImageView_1, primaryStage, invalidStage);
+						}
+					}
 				}
 				else {
-					item.itemCommandAction("Can't do this command in this sceneario!", emojiImageView_2);
-					
-					//generalCommandList.add("use");
-					//generalCommandList.add("use item");
-					
-					//generalCommandList.add("equip");
-					//generalCommandList.add("equip item");
-						
-					//generalCommandList.add("unequip");
-					//generalCommandList.add("unequip item");
-						
-					//generalCommandList.add("drop");
-					//generalCommandList.add("drop item");
+					if (invalidStage.isShowing()) {
+						invalidStage.close();
+						player.displayInvalidCommandMessage("scenario command", emojiImageView_2, primaryStage, invalidStage);
+					}
+					else {
+						player.displayInvalidCommandMessage("scenario command", emojiImageView_2, primaryStage, invalidStage);
+					}
 				}
 			}
 		});
 	}
 	
 	// Item Description or Picked up Message/Stage
-	public void itemCommandAction(Stage primaryStage, String message, ImageView emojiImageView_2, Boolean itemPickedUp) {
-		Text invalidCommandMessage = new Text(message);
-		invalidCommandMessage.setTextAlignment(TextAlignment.CENTER);
-		VBox invalidCommandBox = new VBox(10);
-		invalidCommandBox.setAlignment(Pos.CENTER);
-		
+	public void itemCommandAction(Stage primaryStage, String message, ImageView emoji, Boolean itemIsPickedUp, Stage itemStage, String item) {
+		Text commandMessage = new Text(message);
+		commandMessage.setTextAlignment(TextAlignment.CENTER);
+		VBox commandBox = new VBox(10);
+		commandBox.setAlignment(Pos.CENTER);
+			
 		Button okButton = new Button("OK");
 		
-		invalidCommandBox.getChildren().add(invalidCommandMessage);
-		invalidCommandBox.getChildren().add(emojiImageView_2);
-		invalidCommandBox.getChildren().add(okButton);
+		Scene itemCommandScene = new Scene(commandBox, 300, 150);
 		
-		Scene invalidCommandScene = new Scene(invalidCommandBox, 300, 150);
-		Stage invalidCommandStage = new Stage();
+		if (itemIsPickedUp) {
+			itemStage.setTitle("Item Stored");
+		}		
+		else {
+			Label l = new Label("Item Description: " + item);
+			l.setStyle("-fx-font-size: 18px;" +
+					"-fx-font-weight: bold");
+			commandBox.getChildren().add(l);
+			itemStage.setTitle("Item Description");
+			itemStage.setWidth(400);
+			itemStage.setHeight(250);
+		}
 		
-		invalidCommandStage.setScene(invalidCommandScene);
-		invalidCommandStage.show();
+		commandBox.getChildren().add(commandMessage);
+		commandBox.getChildren().add(emoji);
+		commandBox.getChildren().add(okButton);
+		
+		itemStage.setResizable(false);
+		
+		itemStage.setX(primaryStage.getX() + (primaryStage.getWidth() - itemCommandScene.getWidth())/2);
+		itemStage.setY(primaryStage.getY() + (primaryStage.getHeight() - itemCommandScene.getHeight())/2);
+		
+		itemStage.setScene(itemCommandScene);
+		itemStage.show();
 		
 		okButton.setOnAction(f -> {
-			invalidCommandStage.close();
-			if(itemPickedUp) {
+			itemStage.close();
+			if(itemIsPickedUp) {
 				showStartGameScene(primaryStage);
 			}
 		});
 	}
-	
-	// Reason we don't put the following functions in the Puzzle Class is because
-	// After entering "ignore puzzle" game goes back to the Main GridPane
-	// was not able to call a main method/function from the Puzzle Class
 	
 	// If a puzzle is found, display "Puzzle Found"
 	// The player is able to choose solve or ignore puzzle
@@ -918,7 +1887,24 @@ public class Main extends Application {
 				
 				// This function validates the command, if false, display invalid command message
 				if (player.validateCommand(userInputCommand, generalCommandList).equals(false)) {
-					player.displayInvalidCommandMessage(userInputCommand, emojiImageView_1);
+					if (userInputCommand.equals("move")) {
+						if (invalidStage.isShowing()) {
+							invalidStage.close();
+							player.displayInvalidCommandMessage("scenario command", emojiImageView_1, primaryStage, invalidStage);
+						}
+						else {
+							player.displayInvalidCommandMessage("scenario command", emojiImageView_1, primaryStage, invalidStage);
+						}
+					}
+					else {
+						if (invalidStage.isShowing()) {
+							invalidStage.close();
+							player.displayInvalidCommandMessage(userInputCommand, emojiImageView_1, primaryStage, invalidStage);
+						}
+						else {
+							player.displayInvalidCommandMessage(userInputCommand, emojiImageView_1, primaryStage, invalidStage);
+						}
+					}
 				}
 				else {
 					if (userInputCommand.equals("ignore puzzle") || userInputCommand.equals("ignore")) {
@@ -929,35 +1915,25 @@ public class Main extends Application {
 						displaySolvingPuzzleScene(primaryStage, gameBox, puzzleIndex, itemIndex, userInputTextField);
 					}
 					else if (userInputCommand.equals("help")) {
-						
+						if (!puzzleHelpStage.isShowing())
+							player.helpCommand(puzzleHelpStage, puzzleHelpImageView, screenBounds, "Puzzle Help");
+					}
+					else if (userInputCommand.equals("commands") || userInputCommand.equals("command list")) {
+						if (!commandListStage.isShowing())
+							player.helpCommand(commandListStage, commandListImageView, screenBounds, "Command List");
 					}
 					else {
-						Text invalidCommandMessage = new Text("Can't do this command in this scenario!");
-						invalidCommandMessage.setTextAlignment(TextAlignment.CENTER);
-						VBox invalidCommandBox = new VBox(10);
-						invalidCommandBox.setAlignment(Pos.CENTER);
-						
-						Button okButton = new Button("OK");
-						
-						invalidCommandBox.getChildren().add(invalidCommandMessage);
-						invalidCommandBox.getChildren().add(emojiImageView_2);
-						invalidCommandBox.getChildren().add(okButton);
-						
-						Scene invalidCommandScene = new Scene(invalidCommandBox, 300, 150);
-						Stage invalidCommandStage = new Stage();
-						
-						invalidCommandStage.setScene(invalidCommandScene);
-						invalidCommandStage.show();
-						
-						okButton.setOnAction(f -> {
-							invalidCommandStage.close();
-						});
+						if (invalidStage.isShowing()) {
+							invalidStage.close();
+							player.displayInvalidCommandMessage("scenario command", emojiImageView_1, primaryStage, invalidStage);
+						}
+						else {
+							player.displayInvalidCommandMessage("scenario command", emojiImageView_1, primaryStage, invalidStage);
+						}
 					}
 				}
-				
 				userInputTextField.clear();
 			}
-			
 		});
 		
 	}
@@ -1005,22 +1981,26 @@ public class Main extends Application {
 				
 		userInputTextField.setOnKeyPressed(e -> {
 			if (e.getCode().equals(KeyCode.ENTER)) {
-				userInputCommand = userInputTextField.getText();
-				userInputCommand = userInputCommand.toLowerCase();
+				userInputCommand = userInputTextField.getText().toLowerCase();
 				
-				if (userInputCommand.equals("ignore puzzle") || userInputCommand.equals("ignore")) {
-					showStartGameScene(primaryStage);
-				}
-				else if (userInputCommand.equals("hint")) {
-					puzzle.displayPuzzleHint(puzzleArrayList.get(puzzleIndex).getPuzzleHint(), emojiImageView_4);
+				//if (userInputCommand.equals("ignore puzzle") || userInputCommand.equals("ignore")) {
+				//	showStartGameScene(primaryStage);
+				//}
+				if (userInputCommand.equals("hint")) {
+					puzzle.displayPuzzleHint(puzzleArrayList.get(puzzleIndex).getPuzzleHint(), emojiImageView_4, primaryStage);
 				}
 				else if (userInputCommand.equals("help")) {
-					
+					if (!puzzleHelpStage.isShowing())
+						player.helpCommand(puzzleHelpStage, puzzleHelpImageView, screenBounds, "Puzzle Help");
+				}
+				else if (userInputCommand.equals("commands") || userInputCommand.equals("command list")) {
+					if (!commandListStage.isShowing())
+						player.helpCommand(commandListStage, commandListImageView, screenBounds, "Command List");
 				}
 				// Player sucessfully answers the puzzle
 				else if (userInputCommand.equals(puzzleArrayList.get(puzzleIndex).getPuzzleAnswer())) {
-					// player.getPlayerInventory().add(itemArrayList.get(itemIndex));
-					String message = "Correct!";
+					String message = "Correct! You get +" + puzzleArrayList.get(puzzleIndex).getPuzzleScore() + " points!";
+					puzzleArrayList.get(puzzleIndex).setPuzzleIsSolved(true);
 					displayPuzzleSolved(primaryStage, puzzleIndex, itemIndex, soundEffect_2, message, emojiImageView_3, true, gameBox, userInputTextField);
 					displayItemFoundScene(primaryStage, gameBox, itemIndex, userInputTextField, "You've unlocked an item!");	
 				}
@@ -1028,19 +2008,21 @@ public class Main extends Application {
 					// Player's answer is incorrect
 					// Setting both puzzle and item(reward) = true
 					// So they will not show up again in the game!
-					if (puzzleArrayList.get(puzzleIndex).getPuzzleAttempts() <= 0) {
-						itemArrayList.get(itemIndex).setItemIsPickedUp(true);
+					if (puzzleArrayList.get(puzzleIndex).getPuzzleAttempts() <= 1) {
+						
+						itemArrayList.get(itemIndex).setItemIsLocked(true);
 						
 						String message = "Incorrect! The answer was " + puzzleArrayList.get(puzzleIndex).getPuzzleAnswer();
 						displayPuzzleSolved(primaryStage, puzzleIndex, itemIndex, soundEffect_3, message, emojiImageView_2, false, gameBox, userInputTextField);
 						
 					}
 					else {
-						puzzle.displayPuzzleHint("Incorrect!", emojiImageView_4);
+						puzzle.displayPuzzleHint("Incorrect!", emojiImageView_4, primaryStage);
 						puzzleArrayList.get(puzzleIndex).setPuzzleAttempts(puzzleArrayList.get(puzzleIndex).getPuzzleAttempts()-1);
 						attemptsLeft.setText("Attempts left = " + puzzleArrayList.get(puzzleIndex).getPuzzleAttempts());	
 					}
 				}
+				userInputTextField.clear();
 			}
 		});
 	}
@@ -1049,8 +2031,8 @@ public class Main extends Application {
 	// If the player answered correctly, the player is rewarded 
 	// with an item, if not, then the player doesn't get the item
 	// Either way, the puzzle will not show again in the game
-	public void displayPuzzleSolved(Stage primaryStage, int puzzleIndex, int itemIndex, AudioClip soundEffect, String message, ImageView emojiImageView, Boolean successfullySolved, GridPane gameBox, TextField userInputTextField) {
-		puzzleArrayList.get(puzzleIndex).setPuzzleIsSolved(true);
+	public void displayPuzzleSolved(Stage primaryStage, int puzzleIndex, int itemIndex, AudioClip soundEffect, String message, ImageView emoji, Boolean successfullySolved, GridPane gameBox, TextField userInputTextField) {
+		puzzleArrayList.get(puzzleIndex).setPuzzleIsLocked(true);
 		
 		soundEffect.play(1.0);
 		
@@ -1062,64 +2044,47 @@ public class Main extends Application {
 		Button okButton = new Button("OK");
 		
 		puzzleSolvedBox.getChildren().add(puzzleSolved);
-		puzzleSolvedBox.getChildren().add(emojiImageView);
+		puzzleSolvedBox.getChildren().add(emoji);
 		puzzleSolvedBox.getChildren().add(okButton);
 		
 		Scene puzzleSolvedScene = new Scene(puzzleSolvedBox, 450, 120);
 		Stage puzzleSolvedStage = new Stage();
 		
+		puzzleSolvedStage.setX(primaryStage.getX() + (primaryStage.getWidth() - puzzleSolvedScene.getWidth())/2);
+		puzzleSolvedStage.setY(primaryStage.getY() + (primaryStage.getHeight() - puzzleSolvedScene.getHeight())/2);
+		
 		puzzleSolvedStage.setScene(puzzleSolvedScene);
 		puzzleSolvedStage.show();
 		puzzleSolvedStage.setTitle("Puzzle Solved");
 		
+		// 
 		if (successfullySolved.equals(true)) {
 			gameBox.getChildren().clear();
 			displayItemFoundScene(primaryStage, gameBox, itemIndex, userInputTextField, "You've unlocked an item!");
 			userInputTextField.clear();
+			
+			puzzleSolvedStage.setOnCloseRequest(e -> {
+				soundEffect.stop();
+			});
+		}
+		else {
+			puzzleSolvedStage.setOnCloseRequest(e -> {
+				soundEffect.stop();
+				showStartGameScene(primaryStage);
+			});
 		}
 		
+		// If ok button pressed
 		okButton.setOnAction(f -> {
+			soundEffect.stop();
 			puzzleSolvedStage.close();
+			
+			if (successfullySolved.equals(false)) {
+				showStartGameScene(primaryStage);
+			}
 		});
 	}
-	
-	// This function automatically displays when the 
-	// player enters a monster's room!
-	public void checkForMonster(Stage primaryStage, int i) {
-		String index = monsterArrayList.get(i).getMonsterID();	
-		int indexLocation = Integer.parseInt(index.substring(1))-1;
-		
-		Media media = new Media(new File(monsterPathVideo.get(indexLocation)).toURI().toString());
-		MediaPlayer mediaPlayer = new MediaPlayer(media);
-		MediaView mediaView = new MediaView(mediaPlayer);
-
-		// This binds the video with the size of the window
-		DoubleProperty width = mediaView.fitWidthProperty();
-        DoubleProperty height = mediaView.fitHeightProperty();
-		
-		width.bind(Bindings.selectDouble(mediaView.sceneProperty(), "width"));
-        height.bind(Bindings.selectDouble(mediaView.sceneProperty(), "height"));
-
-        mediaView.setPreserveRatio(false);
-        
-        // Play as soon as the player enters the room
-		mediaView.setVisible(true);
-		mediaPlayer.setAutoPlay(true);
-		
-		// When the media ends, go back to the text
-		mediaPlayer.setOnEndOfMedia(() -> {
-			mediaView.setVisible(false); 
-			showStartGameScene(primaryStage);
-		});    
-
-		Group group = new Group();
-		
-		group.getChildren().add(mediaView);
-		monsterVideoScene = new Scene(group,800,600);
-		primaryStage.setTitle("Video");
-		primaryStage.setScene(monsterVideoScene);
-	}
-		
+			
 	// This function displays what room is 
 	// in the "x" direction of the player
  	public String displayRoom(int direction, Boolean displayEncounter) {
@@ -1180,7 +2145,7 @@ public class Main extends Application {
 			for (int i = 0; i < monsterArrayList.size(); i++) {
 				if (monsterArrayList.get(i).getMonsterLocation().equals(index) && monsterArrayList.get(i).getMonsterIsDefeated().equals(false)) {
 					for (int j = 0; j < itemArrayList.size(); j++) {
-						if (itemArrayList.get(j).getItemLocation().equals(index) && itemArrayList.get(j).getItemIsPickedUp().equals(false)) {
+						if (itemArrayList.get(j).getItemLocation().equals(index) && (itemArrayList.get(j).getItemIsPickedUp().equals(false) && itemArrayList.get(j).getItemIsLocked().equals(false))) {
 							return "Monster/Item";
 						}
 					}
@@ -1189,9 +2154,9 @@ public class Main extends Application {
 			}
 			// If a puzzle is found, means there is an item too!
 			for (int i = 0; i < puzzleArrayList.size(); i++) {
-				if (puzzleArrayList.get(i).getPuzzleLocation().equals(index) && puzzleArrayList.get(i).getPuzzleIsSolved().equals(false)) {
+				if (puzzleArrayList.get(i).getPuzzleLocation().equals(index) && puzzleArrayList.get(i).getPuzzleIsLocked().equals(false)) {
 					for (int j = 0; j < itemArrayList.size(); j++) {
-						if (itemArrayList.get(j).getItemLocation().equals(index) && itemArrayList.get(j).getItemIsPickedUp().equals(false)) {
+						if (itemArrayList.get(j).getItemLocation().equals(index) && (itemArrayList.get(j).getItemIsPickedUp().equals(false) && itemArrayList.get(j).getItemIsLocked().equals(false))) {
 							return "Puzzle/Item";
 						}
 					}
@@ -1199,7 +2164,7 @@ public class Main extends Application {
 			}
 			// However if we find an item, it doesn't mean we found a puzzle
 			for (int i = 0; i < itemArrayList.size(); i++) {
-				if (itemArrayList.get(i).getItemLocation().equals(index) && itemArrayList.get(i).getItemIsPickedUp().equals(false)) {
+				if (itemArrayList.get(i).getItemLocation().equals(index) && (itemArrayList.get(i).getItemIsPickedUp().equals(false) && itemArrayList.get(i).getItemIsLocked().equals(false))) {
 					return "Item";
 				}
 			}
@@ -1221,7 +2186,7 @@ public class Main extends Application {
 		// Time it takes to display animated message
 		// Stops when reaches end of the message
 		key = new KeyFrame(
-			Duration.seconds(0.005),
+			Duration.seconds(0.002),
 			event -> {
 				if (integer.get() > message.length()) {
 					time.stop();
@@ -1233,6 +2198,7 @@ public class Main extends Application {
 			}
 		);
 		// 
+		
 		time.getKeyFrames().add(key);
 		time.setCycleCount(Animation.INDEFINITE);
 		time.play();
@@ -1240,17 +2206,38 @@ public class Main extends Application {
 		return messageText;
 	}
 	
-	
+	// 
 	public void showLoadGameScene(Stage primaryStage) {
 		
 	}
 	
+	// 
 	public void showScoreBoardScene(Stage primaryStage) {
 		
 	}
 	
+	// This function displays instructions/information about the game
 	public void showHelpScene(Stage primaryStage) {
+		helpPane = new GridPane();
+		helpPane.setAlignment(Pos.CENTER);
+		helpPane.setVgap(10);
+		helpPane.setHgap(10);
+		helpPane.setPadding(new Insets(10));
 		
+		Button okButton = new Button("Ok");
+		helpPane.add(helpImageView, 0, 0);
+		helpPane.add(okButton, 0, 1);
+		
+		helpScene = new Scene(helpPane, screenBounds.getWidth()/2, screenBounds.getHeight());
+		primaryStage.setScene(helpScene);
+		
+		GridPane.setHalignment(okButton, HPos.CENTER);
+		
+		okButton.setOnAction(e -> {
+			soundEffect_1.play(1.0);
+			primaryStage.setTitle("Disney Dream Worlds!");
+			primaryStage.setScene(primaryScene);
+		});
 	}
 		
 	// This function creates the file "ItemFile.txt"
@@ -1413,7 +2400,9 @@ public class Main extends Application {
 							itemFileWriter.write("R29~");
 							break;
 					}
-					itemFileWriter.write("false~\n");					
+					itemFileWriter.write("false~");
+					itemFileWriter.write("false~");
+					itemFileWriter.write("false~\n");
 				}
 				itemFileWriter.close();
 			}
@@ -1509,6 +2498,12 @@ public class Main extends Application {
 						else if (attributeCounter == 7) {
 							generalItem.setItemLocation(word);
 						}
+						else if (attributeCounter == 8) {
+							generalItem.setItemIsPickedUp(Boolean.parseBoolean(word));
+						}
+						else if (attributeCounter == 9) {
+							generalItem.setItemIsPickedUp(Boolean.parseBoolean(word));
+						}
 						else {
 							generalItem.setItemIsPickedUp(Boolean.parseBoolean(word));
 							storeItemAttributes();
@@ -1537,6 +2532,8 @@ public class Main extends Application {
 			item01.setItemDefenseAmount(generalItem.getItemDefenseAmount());
 			item01.setItemLocation(generalItem.getItemLocation());
 			item01.setItemIsPickedUp(generalItem.getItemIsPickedUp());
+			item01.setItemIsEquipped(generalItem.getItemIsEquipped());
+			item01.setItemIsLocked(generalItem.getItemIsLocked());
 			itemArrayList.add(item01);
 		}
 		if (generalItem.getItemID().equals("A02")) {
@@ -1549,6 +2546,8 @@ public class Main extends Application {
 			item02.setItemDefenseAmount(generalItem.getItemDefenseAmount());
 			item02.setItemLocation(generalItem.getItemLocation());
 			item02.setItemIsPickedUp(generalItem.getItemIsPickedUp());
+			item02.setItemIsEquipped(generalItem.getItemIsEquipped());
+			item02.setItemIsLocked(generalItem.getItemIsLocked());
 			itemArrayList.add(item02);
 		}
 		if (generalItem.getItemID().equals("A03")) {
@@ -1561,6 +2560,8 @@ public class Main extends Application {
 			item03.setItemDefenseAmount(generalItem.getItemDefenseAmount());
 			item03.setItemLocation(generalItem.getItemLocation());
 			item03.setItemIsPickedUp(generalItem.getItemIsPickedUp());
+			item03.setItemIsEquipped(generalItem.getItemIsEquipped());
+			item03.setItemIsLocked(generalItem.getItemIsLocked());
 			itemArrayList.add(item03);
 		}
 		if (generalItem.getItemID().equals("A04")) {
@@ -1573,6 +2574,8 @@ public class Main extends Application {
 			item04.setItemDefenseAmount(generalItem.getItemDefenseAmount());
 			item04.setItemLocation(generalItem.getItemLocation());
 			item04.setItemIsPickedUp(generalItem.getItemIsPickedUp());
+			item04.setItemIsEquipped(generalItem.getItemIsEquipped());
+			item04.setItemIsLocked(generalItem.getItemIsLocked());
 			itemArrayList.add(item04);
 		}
 		if (generalItem.getItemID().equals("A05")) {
@@ -1585,6 +2588,8 @@ public class Main extends Application {
 			item05.setItemDefenseAmount(generalItem.getItemDefenseAmount());
 			item05.setItemLocation(generalItem.getItemLocation());
 			item05.setItemIsPickedUp(generalItem.getItemIsPickedUp());
+			item05.setItemIsEquipped(generalItem.getItemIsEquipped());
+			item05.setItemIsLocked(generalItem.getItemIsLocked());
 			itemArrayList.add(item05);
 		}
 		if (generalItem.getItemID().equals("A06")) {
@@ -1597,6 +2602,8 @@ public class Main extends Application {
 			item06.setItemDefenseAmount(generalItem.getItemDefenseAmount());
 			item06.setItemLocation(generalItem.getItemLocation());
 			item06.setItemIsPickedUp(generalItem.getItemIsPickedUp());
+			item06.setItemIsEquipped(generalItem.getItemIsEquipped());
+			item06.setItemIsLocked(generalItem.getItemIsLocked());
 			itemArrayList.add(item06);
 		}
 		if (generalItem.getItemID().equals("A07")) {
@@ -1609,6 +2616,8 @@ public class Main extends Application {
 			item07.setItemDefenseAmount(generalItem.getItemDefenseAmount());
 			item07.setItemLocation(generalItem.getItemLocation());
 			item07.setItemIsPickedUp(generalItem.getItemIsPickedUp());
+			item07.setItemIsEquipped(generalItem.getItemIsEquipped());
+			item07.setItemIsLocked(generalItem.getItemIsLocked());
 			itemArrayList.add(item07);
 		}
 		if (generalItem.getItemID().equals("A08")) {
@@ -1621,6 +2630,8 @@ public class Main extends Application {
 			item08.setItemDefenseAmount(generalItem.getItemDefenseAmount());
 			item08.setItemLocation(generalItem.getItemLocation());
 			item08.setItemIsPickedUp(generalItem.getItemIsPickedUp());
+			item08.setItemIsEquipped(generalItem.getItemIsEquipped());
+			item08.setItemIsLocked(generalItem.getItemIsLocked());
 			itemArrayList.add(item08);
 		}
 		if (generalItem.getItemID().equals("A09")) {
@@ -1633,6 +2644,8 @@ public class Main extends Application {
 			item09.setItemDefenseAmount(generalItem.getItemDefenseAmount());
 			item09.setItemLocation(generalItem.getItemLocation());
 			item09.setItemIsPickedUp(generalItem.getItemIsPickedUp());
+			item09.setItemIsEquipped(generalItem.getItemIsEquipped());
+			item09.setItemIsLocked(generalItem.getItemIsLocked());
 			itemArrayList.add(item09);
 		}
 		if (generalItem.getItemID().equals("A10")) {
@@ -1645,6 +2658,8 @@ public class Main extends Application {
 			item10.setItemDefenseAmount(generalItem.getItemDefenseAmount());
 			item10.setItemLocation(generalItem.getItemLocation());
 			item10.setItemIsPickedUp(generalItem.getItemIsPickedUp());
+			item10.setItemIsEquipped(generalItem.getItemIsEquipped());
+			item10.setItemIsLocked(generalItem.getItemIsLocked());
 			itemArrayList.add(item10);
 		}
 		if (generalItem.getItemID().equals("A11")) {
@@ -1657,6 +2672,8 @@ public class Main extends Application {
 			item11.setItemDefenseAmount(generalItem.getItemDefenseAmount());
 			item11.setItemLocation(generalItem.getItemLocation());
 			item11.setItemIsPickedUp(generalItem.getItemIsPickedUp());
+			item11.setItemIsEquipped(generalItem.getItemIsEquipped());
+			item11.setItemIsLocked(generalItem.getItemIsLocked());
 			itemArrayList.add(item11);
 		}
 		if (generalItem.getItemID().equals("A12")) {
@@ -1669,6 +2686,8 @@ public class Main extends Application {
 			item12.setItemDefenseAmount(generalItem.getItemDefenseAmount());
 			item12.setItemLocation(generalItem.getItemLocation());
 			item12.setItemIsPickedUp(generalItem.getItemIsPickedUp());
+			item12.setItemIsEquipped(generalItem.getItemIsEquipped());
+			item12.setItemIsLocked(generalItem.getItemIsLocked());
 			itemArrayList.add(item12);
 		}
 		if (generalItem.getItemID().equals("A13")) {
@@ -1681,6 +2700,8 @@ public class Main extends Application {
 			item13.setItemDefenseAmount(generalItem.getItemDefenseAmount());
 			item13.setItemLocation(generalItem.getItemLocation());
 			item13.setItemIsPickedUp(generalItem.getItemIsPickedUp());
+			item13.setItemIsEquipped(generalItem.getItemIsEquipped());
+			item13.setItemIsLocked(generalItem.getItemIsLocked());
 			itemArrayList.add(item13);
 		}
 		if (generalItem.getItemID().equals("A14")) {
@@ -1693,6 +2714,8 @@ public class Main extends Application {
 			item14.setItemDefenseAmount(generalItem.getItemDefenseAmount());
 			item14.setItemLocation(generalItem.getItemLocation());
 			item14.setItemIsPickedUp(generalItem.getItemIsPickedUp());
+			item14.setItemIsEquipped(generalItem.getItemIsEquipped());
+			item14.setItemIsLocked(generalItem.getItemIsLocked());
 			itemArrayList.add(item14);
 		}
 		if (generalItem.getItemID().equals("A15")) {
@@ -1705,6 +2728,8 @@ public class Main extends Application {
 			item15.setItemDefenseAmount(generalItem.getItemDefenseAmount());
 			item15.setItemLocation(generalItem.getItemLocation());
 			item15.setItemIsPickedUp(generalItem.getItemIsPickedUp());
+			item15.setItemIsEquipped(generalItem.getItemIsEquipped());
+			item15.setItemIsLocked(generalItem.getItemIsLocked());
 			itemArrayList.add(item15);
 		}
 	}
@@ -1732,7 +2757,7 @@ public class Main extends Application {
 							puzzleFileWriter.write("What fruit did Snow White eat that cursed her with eternal sleep?~");
 							puzzleFileWriter.write("apple~");
 							puzzleFileWriter.write("3~");
-							puzzleFileWriter.write("Usually found in the colors of read and green, sometimes yellow.~");
+							puzzleFileWriter.write("Usually found in the colors of red and green, sometimes yellow.~");
 							puzzleFileWriter.write("R04~");
 							puzzleFileWriter.write("200~");
 							break;
@@ -1786,6 +2811,7 @@ public class Main extends Application {
 							puzzleFileWriter.write("100~");
 							break;
 					}
+					puzzleFileWriter.write("false~");
 					puzzleFileWriter.write("false~\n");
 				}
 				puzzleFileWriter.close();
@@ -1870,8 +2896,11 @@ public class Main extends Application {
 						else if (attributeCounter == 6) {
 							generalPuzzle.setPuzzleScore(Integer.parseInt(word));
 						}
-						else {
+						else if (attributeCounter == 7) {
 							generalPuzzle.setPuzzleIsSolved(Boolean.parseBoolean(word));
+						}
+						else {
+							generalPuzzle.setPuzzleIsLocked(Boolean.parseBoolean(word));
 							storePuzzleAttributes();
 						}
 						attributeCounter++;
@@ -1898,6 +2927,7 @@ public class Main extends Application {
 			puzzle01.setPuzzleLocation(generalPuzzle.getPuzzleLocation());
 			puzzle01.setPuzzleScore(generalPuzzle.getPuzzleScore());
 			puzzle01.setPuzzleIsSolved(generalPuzzle.getPuzzleIsSolved());
+			puzzle01.setPuzzleIsLocked(generalPuzzle.getPuzzleIsLocked());
 			puzzleArrayList.add(puzzle01);
 		}
 		else if (generalPuzzle.getPuzzleID().equals("P02")) {
@@ -1909,6 +2939,7 @@ public class Main extends Application {
 			puzzle02.setPuzzleLocation(generalPuzzle.getPuzzleLocation());
 			puzzle02.setPuzzleScore(generalPuzzle.getPuzzleScore());
 			puzzle02.setPuzzleIsSolved(generalPuzzle.getPuzzleIsSolved());
+			puzzle02.setPuzzleIsLocked(generalPuzzle.getPuzzleIsLocked());
 			puzzleArrayList.add(puzzle02);
 		}
 		else if (generalPuzzle.getPuzzleID().equals("P03")) {
@@ -1920,6 +2951,7 @@ public class Main extends Application {
 			puzzle03.setPuzzleLocation(generalPuzzle.getPuzzleLocation());
 			puzzle03.setPuzzleScore(generalPuzzle.getPuzzleScore());
 			puzzle03.setPuzzleIsSolved(generalPuzzle.getPuzzleIsSolved());
+			puzzle03.setPuzzleIsLocked(generalPuzzle.getPuzzleIsLocked());
 			puzzleArrayList.add(puzzle03);
 		}
 		else if (generalPuzzle.getPuzzleID().equals("P04")) {
@@ -1931,6 +2963,7 @@ public class Main extends Application {
 			puzzle04.setPuzzleLocation(generalPuzzle.getPuzzleLocation());
 			puzzle04.setPuzzleScore(generalPuzzle.getPuzzleScore());
 			puzzle04.setPuzzleIsSolved(generalPuzzle.getPuzzleIsSolved());
+			puzzle04.setPuzzleIsLocked(generalPuzzle.getPuzzleIsLocked());
 			puzzleArrayList.add(puzzle04);
 		}
 		else if (generalPuzzle.getPuzzleID().equals("P05")) {
@@ -1942,6 +2975,7 @@ public class Main extends Application {
 			puzzle05.setPuzzleLocation(generalPuzzle.getPuzzleLocation());
 			puzzle05.setPuzzleScore(generalPuzzle.getPuzzleScore());
 			puzzle05.setPuzzleIsSolved(generalPuzzle.getPuzzleIsSolved());
+			puzzle05.setPuzzleIsLocked(generalPuzzle.getPuzzleIsLocked());
 			puzzleArrayList.add(puzzle05);
 		}
 		else if (generalPuzzle.getPuzzleID().equals("P06")) {
@@ -1953,6 +2987,7 @@ public class Main extends Application {
 			puzzle06.setPuzzleLocation(generalPuzzle.getPuzzleLocation());
 			puzzle06.setPuzzleScore(generalPuzzle.getPuzzleScore());
 			puzzle06.setPuzzleIsSolved(generalPuzzle.getPuzzleIsSolved());
+			puzzle06.setPuzzleIsLocked(generalPuzzle.getPuzzleIsLocked());
 			puzzleArrayList.add(puzzle06);
 		}
 		else if (generalPuzzle.getPuzzleID().equals("P07")) {
@@ -1964,6 +2999,7 @@ public class Main extends Application {
 			puzzle07.setPuzzleLocation(generalPuzzle.getPuzzleLocation());
 			puzzle07.setPuzzleScore(generalPuzzle.getPuzzleScore());
 			puzzle07.setPuzzleIsSolved(generalPuzzle.getPuzzleIsSolved());
+			puzzle07.setPuzzleIsLocked(generalPuzzle.getPuzzleIsLocked());
 			puzzleArrayList.add(puzzle07);
 		}
 	}
@@ -1990,8 +3026,9 @@ public class Main extends Application {
 						case 1:
 							monsterFileWriter.write("Snow White~");
 							monsterFileWriter.write("She is a foster mom of seven dwarves.~");
-							monsterFileWriter.write("Power: As soon as she starts to sing the closest forest animals will attack you. Don't let her catch you near a forest.~");
+							monsterFileWriter.write("Power: Forest animals attack you when she sings.~");
 							monsterFileWriter.write("Weakness: Apples~");
+							monsterFileWriter.write("50~");
 							monsterFileWriter.write("50~");
 							monsterFileWriter.write("10~");
 							monsterFileWriter.write("20~");
@@ -2001,8 +3038,9 @@ public class Main extends Application {
 						case 2:
 							monsterFileWriter.write("Cinderella~");
 							monsterFileWriter.write("She is the best interior designer in all the land.~");
-							monsterFileWriter.write("Power: At the snap of her fingers a nest of 100 mice will attack you from every direciton.~");
+							monsterFileWriter.write("Power: Mice attack you at the snap of her fingers.~");
 							monsterFileWriter.write("Weakness: Step Mothers, Steo Sisters, and Midnight~");
+							monsterFileWriter.write("60~");
 							monsterFileWriter.write("60~");
 							monsterFileWriter.write("10~");
 							monsterFileWriter.write("20~");
@@ -2012,8 +3050,9 @@ public class Main extends Application {
 						case 3:
 							monsterFileWriter.write("Jasmine~");
 							monsterFileWriter.write("She is a princess by day and world traveler by night.~");
-							monsterFileWriter.write("Power: She always has the largest Bengal tiger in the world with her and it will do anything to protect her.~");
+							monsterFileWriter.write("Power: She has the largest Bengal tiger protecting her.~");
 							monsterFileWriter.write("Weakness: Talking Parrots~");
+							monsterFileWriter.write("70~");
 							monsterFileWriter.write("70~");
 							monsterFileWriter.write("10~");
 							monsterFileWriter.write("20~");
@@ -2022,9 +3061,10 @@ public class Main extends Application {
 							break;
 						case 4:
 							monsterFileWriter.write("Rapunzel~");
-							monsterFileWriter.write("She is a business woman who opened up her own hair salon that sells custom made organic wigs.~");
-							monsterFileWriter.write("Power: She has really long hair that grows and moves like appendages. They can attack and protect her at the same time.~");
+							monsterFileWriter.write("She is a business woman who opened up her own hair salon.~");
+							monsterFileWriter.write("Power: Her long hair can attack and protect her at the same time.~");
 							monsterFileWriter.write("Weakness: Scissors~");
+							monsterFileWriter.write("80~");
 							monsterFileWriter.write("80~");
 							monsterFileWriter.write("10~");
 							monsterFileWriter.write("20~");
@@ -2033,9 +3073,10 @@ public class Main extends Application {
 							break;
 						case 5:
 							monsterFileWriter.write("Ariel~");
-							monsterFileWriter.write("She is a dolphin trainer at SeaWorld and has her own tv show, \"Dolphin Whisperer.\"~");
-							monsterFileWriter.write("Power: She can speak to all sea creatures and can call them all to her aid using an echo location pulse.~");
+							monsterFileWriter.write("She is a dolphin trainer at SeaWorld.~");
+							monsterFileWriter.write("Power: She can speak to all sea creatures.~");
 							monsterFileWriter.write("Weakness: Sushi~");
+							monsterFileWriter.write("90~");
 							monsterFileWriter.write("90~");
 							monsterFileWriter.write("10~");
 							monsterFileWriter.write("20~");
@@ -2044,9 +3085,10 @@ public class Main extends Application {
 							break;
 						case 6:
 							monsterFileWriter.write("Mulan~");
-							monsterFileWriter.write("She is a drill sergeant in the ROTC at her Alma Mater, DarkSideOfTheMoon University.~");
-							monsterFileWriter.write("Power: Swift as a coursing river, has the force of a great typhoon, and the strength of a raging fire.~");
+							monsterFileWriter.write("She is a drill sergeant in the ROTC at her Alma Mater.~");
+							monsterFileWriter.write("Power: Swift as a coursing river, and has the force of a great typhoon.~");
 							monsterFileWriter.write("Weakness: Lucky Crickets~");
+							monsterFileWriter.write("100~");
 							monsterFileWriter.write("100~");
 							monsterFileWriter.write("10~");
 							monsterFileWriter.write("20~");
@@ -2055,9 +3097,10 @@ public class Main extends Application {
 							break;
 						case 7:
 							monsterFileWriter.write("Pocahontas~");
-							monsterFileWriter.write("She has been given the title of honorary park ranger at every National Park in the USA.~");
-							monsterFileWriter.write("Power: She can paint with all the colors of the wind. Causes high damage to any opponent.~");
+							monsterFileWriter.write("She has been given the title of honorary park ranger.~");
+							monsterFileWriter.write("Power: She can paint with all the colors of the wind.~");
 							monsterFileWriter.write("Weakness: Modern technology~");
+							monsterFileWriter.write("110~");
 							monsterFileWriter.write("110~");
 							monsterFileWriter.write("10~");
 							monsterFileWriter.write("20~");
@@ -2066,9 +3109,10 @@ public class Main extends Application {
 							break;
 						case 8:
 							monsterFileWriter.write("Mickey Mouse~");
-							monsterFileWriter.write("King of the Disney Multiverse. Most powerful creature in all the lands. Final Boss of the Disney Drean Worlds game. Defeat him to wake up from the player's dream and win the game.~");
+							monsterFileWriter.write("King of the Disney Multiverse. Defeat him to wake up from the player's dream and win the game.~");
 							monsterFileWriter.write("Power: Magical hat that gives him unlimited magical powers.~");
 							monsterFileWriter.write("Weakness: Minnie Mouse~");
+							monsterFileWriter.write("200~");
 							monsterFileWriter.write("200~");
 							monsterFileWriter.write("15~");
 							monsterFileWriter.write("25~");
@@ -2159,18 +3203,21 @@ public class Main extends Application {
 							generalMonster.setMonsterDescription3(word);
 						}
 						else if (attributeCounter == 5) {
-							generalMonster.setMonsterHealth(Integer.parseInt(word));
+							generalMonster.setMonsterCurrentHealth(Integer.parseInt(word));
 						}
 						else if (attributeCounter == 6) {
-							generalMonster.setMonsterMinAttack(Integer.parseInt(word));
+							generalMonster.setMonsterTotalHealth(Integer.parseInt(word));
 						}
 						else if (attributeCounter == 7) {
-							generalMonster.setMonsterMaxAttack(Integer.parseInt(word));
+							generalMonster.setMonsterMinAttack(Integer.parseInt(word));
 						}
 						else if (attributeCounter == 8) {
-							generalMonster.setMonsterDefense(Integer.parseInt(word));
+							generalMonster.setMonsterMaxAttack(Integer.parseInt(word));
 						}
 						else if (attributeCounter == 9) {
+							generalMonster.setMonsterDefense(Integer.parseInt(word));
+						}
+						else if (attributeCounter == 10) {
 							generalMonster.setMonsterLocation(word);
 						}
 						else {
@@ -2197,7 +3244,8 @@ public class Main extends Application {
 			monster01.setMonsterDescription1(generalMonster.getMonsterDescription1());
 			monster01.setMonsterDescription2(generalMonster.getMonsterDescription2());
 			monster01.setMonsterDescription3(generalMonster.getMonsterDescription3());
-			monster01.setMonsterHealth(generalMonster.getMonsterHealth());
+			monster01.setMonsterCurrentHealth(generalMonster.getMonsterCurrentHealth());
+			monster01.setMonsterTotalHealth(generalMonster.getMonsterTotalHealth());
 			monster01.setMonsterMinAttack(generalMonster.getMonsterMinAttack());
 			monster01.setMonsterMaxAttack(generalMonster.getMonsterMaxAttack());
 			monster01.setMonsterDefense(generalMonster.getMonsterDefense());
@@ -2211,7 +3259,8 @@ public class Main extends Application {
 			monster02.setMonsterDescription1(generalMonster.getMonsterDescription1());
 			monster02.setMonsterDescription2(generalMonster.getMonsterDescription2());
 			monster02.setMonsterDescription3(generalMonster.getMonsterDescription3());
-			monster02.setMonsterHealth(generalMonster.getMonsterHealth());
+			monster02.setMonsterCurrentHealth(generalMonster.getMonsterCurrentHealth());
+			monster02.setMonsterTotalHealth(generalMonster.getMonsterTotalHealth());
 			monster02.setMonsterMinAttack(generalMonster.getMonsterMinAttack());
 			monster02.setMonsterMaxAttack(generalMonster.getMonsterMaxAttack());
 			monster02.setMonsterDefense(generalMonster.getMonsterDefense());
@@ -2225,7 +3274,8 @@ public class Main extends Application {
 			monster03.setMonsterDescription1(generalMonster.getMonsterDescription1());
 			monster03.setMonsterDescription2(generalMonster.getMonsterDescription2());
 			monster03.setMonsterDescription3(generalMonster.getMonsterDescription3());
-			monster03.setMonsterHealth(generalMonster.getMonsterHealth());
+			monster03.setMonsterCurrentHealth(generalMonster.getMonsterCurrentHealth());
+			monster03.setMonsterTotalHealth(generalMonster.getMonsterTotalHealth());
 			monster03.setMonsterMinAttack(generalMonster.getMonsterMinAttack());
 			monster03.setMonsterMaxAttack(generalMonster.getMonsterMaxAttack());
 			monster03.setMonsterDefense(generalMonster.getMonsterDefense());
@@ -2239,7 +3289,8 @@ public class Main extends Application {
 			monster04.setMonsterDescription1(generalMonster.getMonsterDescription1());
 			monster04.setMonsterDescription2(generalMonster.getMonsterDescription2());
 			monster04.setMonsterDescription3(generalMonster.getMonsterDescription3());
-			monster04.setMonsterHealth(generalMonster.getMonsterHealth());
+			monster04.setMonsterCurrentHealth(generalMonster.getMonsterCurrentHealth());
+			monster04.setMonsterTotalHealth(generalMonster.getMonsterTotalHealth());
 			monster04.setMonsterMinAttack(generalMonster.getMonsterMinAttack());
 			monster04.setMonsterMaxAttack(generalMonster.getMonsterMaxAttack());
 			monster04.setMonsterDefense(generalMonster.getMonsterDefense());
@@ -2253,7 +3304,8 @@ public class Main extends Application {
 			monster05.setMonsterDescription1(generalMonster.getMonsterDescription1());
 			monster05.setMonsterDescription2(generalMonster.getMonsterDescription2());
 			monster05.setMonsterDescription3(generalMonster.getMonsterDescription3());
-			monster05.setMonsterHealth(generalMonster.getMonsterHealth());
+			monster05.setMonsterCurrentHealth(generalMonster.getMonsterCurrentHealth());
+			monster05.setMonsterTotalHealth(generalMonster.getMonsterTotalHealth());
 			monster05.setMonsterMinAttack(generalMonster.getMonsterMinAttack());
 			monster05.setMonsterMaxAttack(generalMonster.getMonsterMaxAttack());
 			monster05.setMonsterDefense(generalMonster.getMonsterDefense());
@@ -2267,7 +3319,8 @@ public class Main extends Application {
 			monster06.setMonsterDescription1(generalMonster.getMonsterDescription1());
 			monster06.setMonsterDescription2(generalMonster.getMonsterDescription2());
 			monster06.setMonsterDescription3(generalMonster.getMonsterDescription3());
-			monster06.setMonsterHealth(generalMonster.getMonsterHealth());
+			monster06.setMonsterCurrentHealth(generalMonster.getMonsterCurrentHealth());
+			monster06.setMonsterTotalHealth(generalMonster.getMonsterTotalHealth());
 			monster06.setMonsterMinAttack(generalMonster.getMonsterMinAttack());
 			monster06.setMonsterMaxAttack(generalMonster.getMonsterMaxAttack());
 			monster06.setMonsterDefense(generalMonster.getMonsterDefense());
@@ -2281,7 +3334,8 @@ public class Main extends Application {
 			monster07.setMonsterDescription1(generalMonster.getMonsterDescription1());
 			monster07.setMonsterDescription2(generalMonster.getMonsterDescription2());
 			monster07.setMonsterDescription3(generalMonster.getMonsterDescription3());
-			monster07.setMonsterHealth(generalMonster.getMonsterHealth());
+			monster07.setMonsterCurrentHealth(generalMonster.getMonsterCurrentHealth());
+			monster07.setMonsterTotalHealth(generalMonster.getMonsterTotalHealth());
 			monster07.setMonsterMinAttack(generalMonster.getMonsterMinAttack());
 			monster07.setMonsterMaxAttack(generalMonster.getMonsterMaxAttack());
 			monster07.setMonsterDefense(generalMonster.getMonsterDefense());
@@ -2295,7 +3349,8 @@ public class Main extends Application {
 			monster08.setMonsterDescription1(generalMonster.getMonsterDescription1());
 			monster08.setMonsterDescription2(generalMonster.getMonsterDescription2());
 			monster08.setMonsterDescription3(generalMonster.getMonsterDescription3());
-			monster08.setMonsterHealth(generalMonster.getMonsterHealth());
+			monster08.setMonsterCurrentHealth(generalMonster.getMonsterCurrentHealth());
+			monster08.setMonsterTotalHealth(generalMonster.getMonsterTotalHealth());
 			monster08.setMonsterMinAttack(generalMonster.getMonsterMinAttack());
 			monster08.setMonsterMaxAttack(generalMonster.getMonsterMaxAttack());
 			monster08.setMonsterDefense(generalMonster.getMonsterDefense());
@@ -2304,4 +3359,5 @@ public class Main extends Application {
 			monsterArrayList.add(monster08);
 		}
 	}
+	
 }

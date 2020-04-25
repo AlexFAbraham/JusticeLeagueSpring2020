@@ -6,7 +6,8 @@ public class Monster {
 	private String monsterDescription1;
 	private String monsterDescription2;
 	private String monsterDescription3;
-	private int monsterHealth;
+	private int monsterCurrentHealth;
+	private int monsterTotalHealth;
 	private int monsterMinAttack;
 	private int monsterMaxAttack;
 	private int monsterDefense;
@@ -17,7 +18,8 @@ public class Monster {
 		monsterID = "";
 		monsterName = "";
 		monsterDescription1 = "";
-		monsterHealth = 0;
+		monsterCurrentHealth = 0;
+		monsterTotalHealth = 0;
 		monsterMinAttack = 0;
 		monsterMaxAttack = 0;
 		monsterDefense = 0;
@@ -25,14 +27,15 @@ public class Monster {
 		monsterIsDefeated = false;
 	}
 	
-	public Monster(String monsterID, String monsterName, String monsterDescription1, String monsterDescription2, String monsterDescription3 , int monsterHealth, 
-			int monsterMinAttack, int monsterMaxAttack, int monsterDefense, String monsterLocation, Boolean monsterIsDefeated) {
+	public Monster(String monsterID, String monsterName, String monsterDescription1, String monsterDescription2, String monsterDescription3 , int monsterCurrentHealth, 
+			int monsterTotalHealth, int monsterMinAttack, int monsterMaxAttack, int monsterDefense, String monsterLocation, Boolean monsterIsDefeated) {
 		this.monsterID = monsterID;
 		this.monsterName = monsterName;
 		this.monsterDescription1 = monsterDescription1;
 		this.monsterDescription2 = monsterDescription2;
 		this.monsterDescription3 = monsterDescription3;
-		this.monsterHealth = monsterHealth;
+		this.monsterCurrentHealth = monsterCurrentHealth;
+		this.monsterTotalHealth = monsterTotalHealth;
 		this.monsterMinAttack = monsterMinAttack;
 		this.monsterMaxAttack = monsterMaxAttack;
 		this.monsterDefense = monsterDefense;
@@ -61,8 +64,12 @@ public class Monster {
 		return monsterDescription3;
 	}
 	
-	public int getMonsterHealth() {
-		return monsterHealth;
+	public int getMonsterCurrentHealth() {
+		return monsterCurrentHealth;
+	}
+	
+	public int getMonsterTotalHealth() {
+		return monsterTotalHealth;
 	}
 	
 	public int getMonsterMinAttack() {
@@ -106,8 +113,12 @@ public class Monster {
 		this.monsterDescription3 = monsterDescription3;
 	}
 	
-	public void setMonsterHealth(int monsterHealth) {
-		this.monsterHealth = monsterHealth;
+	public void setMonsterCurrentHealth(int monsterCurrentHealth) {
+		this.monsterCurrentHealth = monsterCurrentHealth;
+	}
+	
+	public void setMonsterTotalHealth(int monsterTotalHealth) {
+		this.monsterTotalHealth = monsterTotalHealth;
 	}
 	
 	public void setMonsterMinAttack(int monsterMinAttack) {

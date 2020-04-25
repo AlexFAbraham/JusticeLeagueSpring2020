@@ -348,6 +348,7 @@ public class Map {
 	// however, roomID must not be changed ever! and
 	// 'roomsAround' must not be below 0 or above 30 (the highest room)
 	public void readRoomFile() {
+		
 		// Each room has 5 attributes
 		// 1. roomID = Unique Id of the room
 		// 2. roomIsVisited = Whether room has been visited before or not
@@ -357,6 +358,7 @@ public class Map {
 		int attributeCounter = 0;
 		BufferedReader reader;
 		String line;
+		
 		// An arrayList of characters is used to read the file
 		// when a '~' is found, it will put together all of the
 		// characters found before it and stored in the variable
