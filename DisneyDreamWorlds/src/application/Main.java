@@ -78,9 +78,9 @@ public class Main extends Application {
 	// helpScene = displays instructions/information about the game
 	// gameScene = player plays either a new game or existing game
 	// monsterVideoScene = when a player enters a room where a monster is located, a short video is played
-	Scene primaryScene, newGameScene, loadGameScene, scoreBoardScene, helpScene, gameScene, monsterVideoScene;
+	Scene primaryScene, newGameScene, loadGameScene, scoreScene, helpScene, gameScene, monsterVideoScene;
 	
-	Stage playerInventoryStage, playerMapStage, helpStage, commandListStage, itemHelpStage, itemStage, 
+	Stage playerInventoryStage, playerMapStage, helpStage, commandListStage, itemHelpStage, itemStage,
 	    monsterStage, invalidStage, puzzleHelpStage, monsterHelpStage, inventoryHelpStage, statsStage;
 	
 	// newGameButton = start/begin a new game!
@@ -182,6 +182,11 @@ public class Main extends Application {
 	ImageView emojiImageView_3;
 	ImageView emojiImageView_4;
 	
+	// ScoreBoard
+	ArrayList<Score> scoreArrayList;
+	Score generalScore, score01, score02,
+		   	   score03, score04, score05;
+	
 	// Item
 	ArrayList<Item> itemArrayList;
 	Item generalItem, item01, item02, item03, item04, item05, item06, item07,
@@ -231,6 +236,8 @@ public class Main extends Application {
 			readPuzzleFile();
 			createMonsterFile();
 			readMonsterFile();
+			createScoreFile();
+			readScoreFile();
 									
 			emojiImageView_1 = new ImageView(new Image(new FileInputStream("AngryEmoji.png")));
 			emojiImageView_2 = new ImageView(new Image(new FileInputStream("WearyEmoji.png")));
@@ -677,6 +684,7 @@ public class Main extends Application {
 		});
 	}
 	
+	// This function creates new player file when a new account is created
 	public void createPlayerFile(Player player) {
 		try {
 			File userFile = new File(player.getPlayerUsername() + ".txt");
@@ -693,8 +701,8 @@ public class Main extends Application {
 			playerFileWriter.write(player.getPlayerMinAttack() + "~");
 			playerFileWriter.write(player.getPlayerMaxAttack() + "~");
 			playerFileWriter.write(player.getPlayerDefense() + "~");
-			playerFileWriter.write(player.getPlayerScore() + "~\n");
-			playerFileWriter.write(player.getPlayerLocation() + "~");
+			playerFileWriter.write(player.getPlayerScore() + "~");
+			playerFileWriter.write(player.getPlayerLocation() + "~\n");
 			
 			for (int itemIndex = 0; itemIndex < itemArrayList.size(); itemIndex++) {
 				playerFileWriter.write(itemArrayList.get(itemIndex).getItemLocation() + "~");
@@ -885,15 +893,18 @@ public class Main extends Application {
 						player.displayInvalidCommandMessage(userInputCommand, emojiImageView_1, primaryStage, invalidStage);
 					}
 				}
-				else if (userInputTextField.getText().equals("explore") || userInputTextField.getText().equals("explore room")) {
+				else if (userInputCommand.equals("explore") || userInputCommand.equals("explore room")) {
 					checkForSomething(primaryStage, gameBox, userInputTextField);
 				}
-				else if (userInputTextField.getText().equals("open map") || userInputTextField.getText().equals("map") || userInputTextField.getText().equals("look map")) {
+				else if (userInputCommand.equals("save") || userInputCommand.equals("save progress") || userInputCommand.equals("save game")) {
+					player.savePlayerGame(player, itemArrayList, puzzleArrayList, monsterArrayList, primaryStage, emojiImageView_3);
+				}
+				else if (userInputCommand.equals("open map") || userInputCommand.equals("map") || userInputCommand.equals("look map")) {
 					//player.displayMap(player, playerMapStage, mapImageView, locationImageView, puzzleImage, itemImage, monsterImage, puzzleArrayList, itemArrayList, monsterArrayList);
 					if (!playerMapStage.isShowing()) 
 						player.displayMap(player, playerMapStage, mapImageView, locationImageView, puzzleImage, itemImage, monsterImage, puzzleArrayList, itemArrayList, monsterArrayList);
 				}
-				else if (userInputTextField.getText().equals("check inventory") || userInputTextField.getText().equals("look inventory") || userInputTextField.getText().equals("inventory") || userInputTextField.getText().equals("i")) {
+				else if (userInputCommand.equals("check inventory") || userInputCommand.equals("look inventory") || userInputCommand.equals("inventory") || userInputCommand.equals("i")) {
 					if (player.getPlayerInventory().size() < 1 && player.getPlayerEquipment().size() < 1) {
 						if (invalidStage.isShowing()) {
 							invalidStage.close();
@@ -907,15 +918,15 @@ public class Main extends Application {
 						player.playerChecksInventory(player, itemArrayList, emojiImageView_2, emojiImageView_3, generalCommandList, map.roomArrayList, playerInventoryStage, primaryStage, 
 								tableView1, screenBounds, commandListStage, inventoryHelpStage, commandListImageView, inventoryHelpImageView, invalidStage, inventoryTextField);
 				}
-				else if (userInputTextField.getText().equals("help")) {
+				else if (userInputCommand.equals("help")) {
 					if (!helpStage.isShowing())
 						player.helpCommand(helpStage, helpImageView, screenBounds, "Help");
 				}
-				else if (userInputTextField.getText().equals("commands") || userInputTextField.getText().equals("command list")) {
+				else if (userInputCommand.equals("commands") || userInputCommand.equals("command list")) {
 					if (!commandListStage.isShowing())
 						player.helpCommand(commandListStage, commandListImageView, screenBounds, "Command List");
 				}
-				else if (userInputTextField.getText().equals("stats") || userInputTextField.getText().equals("look stats") || userInputTextField.getText().equals("open stats") || userInputTextField.getText().equals("check stats")) {
+				else if (userInputCommand.equals("stats") || userInputCommand.equals("look stats") || userInputCommand.equals("open stats") || userInputCommand.equals("check stats")) {
 					if (statsStage.isShowing()) {
 						statsStage.close();
 						player.displayStats(emojiImageView_3, primaryStage, player, statsStage);
@@ -924,7 +935,7 @@ public class Main extends Application {
 						player.displayStats(emojiImageView_3, primaryStage, player, statsStage);
 					}
 				}
-				else if (userInputTextField.getText().equals("start menu") || userInputTextField.getText().equals("main menu") || userInputTextField.getText().equals("menu")) {
+				else if (userInputCommand.equals("start menu") || userInputCommand.equals("main menu") || userInputCommand.equals("menu")) {
 					try {
 						if(playerInventoryStage.isShowing())
 							playerInventoryStage.close();
@@ -1065,7 +1076,8 @@ public class Main extends Application {
 		}
 	}
 	
-	// 
+	// This function displays what monster has been encountered to fight
+	// and ask the player what to do - fight, examine or ignore it -
 	public void displayMonsterFoundScene(Stage primaryStage, GridPane gameBox, int monsterIndex, TextField userInputTextField) {
 		Text youFoundMonster= new Text(monsterArrayList.get(monsterIndex).getMonsterName() + " is ready to fight!");
 		youFoundMonster.setStyle("-fx-font-size: 18px;" +
@@ -1113,6 +1125,9 @@ public class Main extends Application {
 				if (userInputCommand.equals("ignore") || userInputCommand.equals("ignore monster") || userInputCommand.equals("ignore " + monsterArrayList.get(monsterIndex).getMonsterName().toLowerCase()) ||
 						userInputCommand.equals("run") || userInputCommand.equals("run away") || userInputCommand.equals("flee") || userInputCommand.equals("escape")) {
 					showStartGameScene(primaryStage);
+				}
+				else if (userInputCommand.equals("save") || userInputCommand.equals("save progress") || userInputCommand.equals("save game")) {
+					player.savePlayerGame(player, itemArrayList, puzzleArrayList, monsterArrayList, primaryStage, emojiImageView_3);
 				}
 				else if (userInputCommand.equals("examine") || userInputCommand.equals("examine monster") || userInputCommand.equals("examine " + monsterArrayList.get(monsterIndex).getMonsterName().toLowerCase())) {
 					monsterExamineCommand(primaryStage, monsterStage, emojiImageView_3, monsterIndex);
@@ -1179,7 +1194,8 @@ public class Main extends Application {
 		});
 	}
 	
-	//
+	// When the player attempts to fight the monster, it will be directed 
+	// to the fightMonsterScene, where the player fights the monster!
 	public void displayMonsterFightScene(Stage primaryStage, GridPane gameBox, int monsterIndex, TextField userInputTextField) {
 		Text fight = new Text("Fighting Monster...");
 		fight.setStyle("-fx-font-size: 20px;" +
@@ -1273,7 +1289,35 @@ public class Main extends Application {
 				
 				if (userInputCommand.equals("ignore") || userInputCommand.equals("ignore monster") || userInputCommand.equals("ignore " + monsterArrayList.get(monsterIndex).getMonsterName().toLowerCase()) ||
 						userInputCommand.equals("run") || userInputCommand.equals("run away") || userInputCommand.equals("flee") || userInputCommand.equals("escape")) {
+					
+					String index = player.getPlayerLocation();
+					int indexLocation = Integer.parseInt(index.substring(1))-1;
+					Boolean validEscape = false;
+					
+					while (validEscape == false) {
+						int random = new Random().nextInt(4);
+
+							if (!map.roomArrayList.get(indexLocation).getRoomAround()[random].equals("R00")) {
+								player.setPlayerLocation(map.roomArrayList.get(indexLocation).getRoomAround()[random]);
+								validEscape = true;
+								player.setLocationOfPlayerInMap(player.getPlayerLocation(), locationImageView);
+								
+								index = map.roomArrayList.get(indexLocation).getRoomAround()[random];
+								indexLocation = Integer.parseInt(index.substring(1))-1;
+								
+								player.displayEscape(primaryStage, map.roomArrayList.get(indexLocation).getRoomName(), emojiImageView_2);
+						}							
+					}
+					
 					showStartGameScene(primaryStage);
+				}
+				else if (userInputCommand.equals("open map") || userInputCommand.equals("map") || userInputCommand.equals("look map")) {
+					//player.displayMap(player, playerMapStage, mapImageView, locationImageView, puzzleImage, itemImage, monsterImage, puzzleArrayList, itemArrayList, monsterArrayList);
+					if (!playerMapStage.isShowing()) 
+						player.displayMap(player, playerMapStage, mapImageView, locationImageView, puzzleImage, itemImage, monsterImage, puzzleArrayList, itemArrayList, monsterArrayList);
+				}
+				else if (userInputCommand.equals("save") || userInputCommand.equals("save progress") || userInputCommand.equals("save game")) {
+					player.savePlayerGame(player, itemArrayList, puzzleArrayList, monsterArrayList, primaryStage, emojiImageView_3);
 				}
 				else if (userInputCommand.equals("fight") || userInputCommand.equals("fight monster") || userInputCommand.equals("fight " + monsterArrayList.get(monsterIndex).getMonsterName().toLowerCase()) || 
 						 userInputCommand.equals("attack") || userInputCommand.equals("attack monster") || userInputCommand.equals("attack " + monsterArrayList.get(monsterIndex).getMonsterName().toLowerCase()) || 
@@ -1324,8 +1368,8 @@ public class Main extends Application {
 					p3.setText("Your defense: " + player.getPlayerDefense());
 				}
 				else if (userInputCommand.equals("help")) {
-					if (!puzzleHelpStage.isShowing())
-						player.helpCommand(puzzleHelpStage, puzzleHelpImageView, screenBounds, "Puzzle Help");
+					if (!monsterHelpStage.isShowing())
+						player.helpCommand(monsterHelpStage, monsterHelpImageView, screenBounds, "Monster Help");
 				}
 				else if (userInputCommand.equals("commands") || userInputCommand.equals("command list")) {
 					if (!commandListStage.isShowing())
@@ -1381,7 +1425,7 @@ public class Main extends Application {
 		});
 	}
 	
-	//
+	// This message displays the results after each attack turn during the monster fight
 	public void displayMonsterAttacked(Stage primaryStage, int monsterIndex, ImageView emoji, int playerDamage, int monsterDamage, Boolean monsterIsDefeated, int playerHealth, AudioClip sound) {
 		Text m = new Text("You dealt " + playerDamage + " damage to " + monsterArrayList.get(monsterIndex).getMonsterName() + "!");
 		m.setStyle("-fx-font-size: 15px;" +
@@ -1453,8 +1497,7 @@ public class Main extends Application {
 		});
 	}
 	
-	
-	// 
+	// Display message player wins the game 1
 	public void displayWinMessage1(Stage primaryStage, ImageView emoji, ImageView gif) {
 		VBox box = new VBox(10);
 		box.setAlignment(Pos.CENTER);
@@ -1503,7 +1546,7 @@ public class Main extends Application {
 		});
 	}
 	
-	// 
+	// Display message player wins the game 2
 	public void displayWinMessage2(Stage primaryStage, ImageView emoji) {
 		VBox box = new VBox(10);
 		box.setAlignment(Pos.CENTER);
@@ -1535,6 +1578,17 @@ public class Main extends Application {
 		winStage.setTitle("You won");
 		
 		winStage.setOnCloseRequest(e -> {
+			if (playerInventoryStage.isShowing())
+				playerInventoryStage.close();
+			if (playerMapStage.isShowing())
+				playerMapStage.close();
+			if (itemHelpStage.isShowing())
+				itemHelpStage.close();
+			if (puzzleHelpStage.isShowing())
+				puzzleHelpStage.close();
+			if (monsterHelpStage.isShowing())
+				monsterHelpStage.close();
+			
 			try {
 				start(primaryStage);
 			}
@@ -1547,6 +1601,17 @@ public class Main extends Application {
 		okButton.setOnAction(f -> {
 			winStage.close();
 			
+			if (playerInventoryStage.isShowing())
+				playerInventoryStage.close();
+			if (playerMapStage.isShowing())
+				playerMapStage.close();
+			if (itemHelpStage.isShowing())
+				itemHelpStage.close();
+			if (puzzleHelpStage.isShowing())
+				puzzleHelpStage.close();
+			if (monsterHelpStage.isShowing())
+				monsterHelpStage.close();
+			
 			try {
 				start(primaryStage);
 			}
@@ -1556,14 +1621,14 @@ public class Main extends Application {
 		});
 	}
 	
-	// 
+	// Display message player fails the game / dies
 	public void displayDeathMessage(Stage primaryStage, AudioClip sound, ImageView emoji) {
 		VBox b = new VBox(10);
 		b.setAlignment(Pos.CENTER);
 		
 		Text d = new Text("You died!");
 		Text s = new Text("Your final score is: " + player.getPlayerScore());
-		Text m = new Text("Going back to start manu");
+		Text m = new Text("Going back to start menu");
 		
 		d.setStyle("-fx-font-size: 13px;" +
 				   "-fx-font-weight: bold");
@@ -1594,6 +1659,17 @@ public class Main extends Application {
 		deathStage.setTitle("You died");
 		
 		deathStage.setOnCloseRequest(e -> {
+			if (playerInventoryStage.isShowing())
+				playerInventoryStage.close();
+			if (playerMapStage.isShowing())
+				playerMapStage.close();
+			if (itemHelpStage.isShowing())
+				itemHelpStage.close();
+			if (puzzleHelpStage.isShowing())
+				puzzleHelpStage.close();
+			if (monsterHelpStage.isShowing())
+				monsterHelpStage.close();
+			
 			try {
 				start(primaryStage);
 			}
@@ -1607,6 +1683,17 @@ public class Main extends Application {
 			sound.stop();
 			deathStage.close();
 			
+			if (playerInventoryStage.isShowing())
+				playerInventoryStage.close();
+			if (playerMapStage.isShowing())
+				playerMapStage.close();
+			if (itemHelpStage.isShowing())
+				itemHelpStage.close();
+			if (puzzleHelpStage.isShowing())
+				puzzleHelpStage.close();
+			if (monsterHelpStage.isShowing())
+				monsterHelpStage.close();
+			
 			try {
 				start(primaryStage);
 			}
@@ -1616,7 +1703,7 @@ public class Main extends Application {
 		});
 	}
 	
-	// 
+	// Display the description of the monster in the current room
 	public void monsterExamineCommand(Stage primaryStage, Stage monsterStage, ImageView emoji, int monsterIndex) {
 		Label l = new Label("Monster Description: " + monsterArrayList.get(monsterIndex).getMonsterName());
 		l.setStyle("-fx-font-size: 18px;" +
@@ -1723,6 +1810,9 @@ public class Main extends Application {
 				
 				if (userInputCommand.equals("ignore") || userInputCommand.equals("ignore item") || userInputCommand.equals("ignore " + itemArrayList.get(itemIndex).getItemName().toLowerCase())) {
 					showStartGameScene(primaryStage);
+				}
+				else if (userInputCommand.equals("save") || userInputCommand.equals("save progress") || userInputCommand.equals("save game")) {
+					player.savePlayerGame(player, itemArrayList, puzzleArrayList, monsterArrayList, primaryStage, emojiImageView_3);
 				}
 				else if (userInputCommand.equals("pick up") || userInputCommand.equals("pick up item") || userInputCommand.equals("pick up " + itemArrayList.get(itemIndex).getItemName().toLowerCase()) || 
 						 userInputCommand.equals("store") || userInputCommand.equals("store item") || userInputCommand.equals("store " + itemArrayList.get(itemIndex).getItemName().toLowerCase())) {
@@ -1913,6 +2003,9 @@ public class Main extends Application {
 					else if (userInputCommand.equals("answer puzzle") || userInputCommand.equals("solve puzzle") || userInputCommand.equals("solve") || userInputCommand.equals("answer")) {
 						gameBox.getChildren().clear();
 						displaySolvingPuzzleScene(primaryStage, gameBox, puzzleIndex, itemIndex, userInputTextField);
+					}
+					else if (userInputCommand.equals("save") || userInputCommand.equals("save progress") || userInputCommand.equals("save game")) {
+						player.savePlayerGame(player, itemArrayList, puzzleArrayList, monsterArrayList, primaryStage, emojiImageView_3);
 					}
 					else if (userInputCommand.equals("help")) {
 						if (!puzzleHelpStage.isShowing())
@@ -2205,18 +2298,285 @@ public class Main extends Application {
 		
 		return messageText;
 	}
-	
-	// 
+
+	// ====================================
+	// |						          |
+	// |						          |
+	// |        Load a Game Scene         |	
+	// |						          |
+	// |						          |
+	// ====================================
 	public void showLoadGameScene(Stage primaryStage) {
 		
 	}
 	
-	// 
+	// ====================================
+	// |						          |
+	// |						          |
+	// |      show Score Board Scene      |	
+	// |						          |
+	// |						          |
+	// ====================================
 	public void showScoreBoardScene(Stage primaryStage) {
+		sortScore(scoreArrayList);
 		
+		GridPane scoreBox = new GridPane();
+		scoreBox.setVgap(30);
+		scoreBox.setAlignment(Pos.CENTER);
+		
+		GridPane scoreTable = new GridPane();
+		scoreTable.setVgap(25);
+		scoreTable.setHgap(120);
+		scoreTable.setAlignment(Pos.CENTER);
+		scoreTable.setPadding(new Insets(0,100,50,100));
+		
+		GridPane titleTable = new GridPane();
+		titleTable.setVgap(25);
+		titleTable.setHgap(80);
+		titleTable.setAlignment(Pos.CENTER);
+		
+		Text p = new Text("Player");
+		p.setFont(Font.font("Verdana", FontWeight.BOLD, 15));
+		Text s = new Text("Score");
+		s.setFont(Font.font("Verdana", FontWeight.BOLD, 15));
+		
+		titleTable.setStyle(
+				"-fx-padding: 10;" + 
+    			"-fx-border-style: solid inside;" + 
+    			"-fx-border-width: 0 0 6 0;" +
+    			"-fx-border-insets: 5;" + 
+    			"-fx-border-radius: 5;" + 
+				"-fx-border-bottom-color: black;"
+				
+    			);
+		
+		titleTable.add(p,0,0);
+		titleTable.add(s,1,0);
+		
+		GridPane.setHalignment(p, HPos.CENTER);
+		GridPane.setHalignment(s, HPos.CENTER);
+		
+		Text t01 = new Text(scoreArrayList.get(4).getScoreName());
+		t01.setFont(Font.font("Verdana", FontWeight.BOLD, 15));
+		Text t02 = new Text(String.valueOf(scoreArrayList.get(4).getScoreNumber()));
+		t02.setFont(Font.font("Verdana", FontWeight.BOLD, 15));
+		Text t03 = new Text(scoreArrayList.get(3).getScoreName());
+		t03.setFont(Font.font("Verdana", FontWeight.BOLD, 15));
+		Text t04 = new Text(String.valueOf(scoreArrayList.get(3).getScoreNumber()));
+		t04.setFont(Font.font("Verdana", FontWeight.BOLD, 15));
+		Text t05 = new Text(scoreArrayList.get(2).getScoreName());
+		t05.setFont(Font.font("Verdana", FontWeight.BOLD, 15));
+		Text t06 = new Text(String.valueOf(scoreArrayList.get(2).getScoreNumber()));
+		t06.setFont(Font.font("Verdana", FontWeight.BOLD, 15));
+		Text t07 = new Text(scoreArrayList.get(1).getScoreName());
+		t07.setFont(Font.font("Verdana", FontWeight.BOLD, 15));
+		Text t08 = new Text(String.valueOf(scoreArrayList.get(1).getScoreNumber()));
+		t08.setFont(Font.font("Verdana", FontWeight.BOLD, 15));
+		Text t09 = new Text(scoreArrayList.get(0).getScoreName());
+		t09.setFont(Font.font("Verdana", FontWeight.BOLD, 15));
+		Text t10 = new Text(String.valueOf(scoreArrayList.get(0).getScoreNumber()));
+		t10.setFont(Font.font("Verdana", FontWeight.BOLD, 15));
+		
+		GridPane.setHalignment(t01, HPos.CENTER);
+		GridPane.setHalignment(t02, HPos.CENTER);
+		GridPane.setHalignment(t03, HPos.CENTER);
+		GridPane.setHalignment(t04, HPos.CENTER);
+		GridPane.setHalignment(t05, HPos.CENTER);
+		GridPane.setHalignment(t06, HPos.CENTER);
+		GridPane.setHalignment(t07, HPos.CENTER);
+		GridPane.setHalignment(t08, HPos.CENTER);
+		GridPane.setHalignment(t09, HPos.CENTER);
+		GridPane.setHalignment(t10, HPos.CENTER);
+		
+		scoreTable.add(t01,0,0);
+		scoreTable.add(t02,1,0);
+		scoreTable.add(t03,0,1);
+		scoreTable.add(t04,1,1);
+		scoreTable.add(t05,0,2);
+		scoreTable.add(t06,1,2);
+		scoreTable.add(t07,0,3);
+		scoreTable.add(t08,1,3);
+		scoreTable.add(t09,0,4);
+		scoreTable.add(t10,1,4);
+		
+		Label l = new Label("Top Scoreboard");
+		l.setStyle("-fx-font-family: Chiller;" +
+					"-fx-font-size: 72px;" +
+				   "-fx-font-weight: bold;");
+		
+		Button okButton = new Button("OK");
+		
+		//scoreBox.add(logo, 0, 0);
+		scoreBox.add(l, 0, 0);
+		scoreBox.add(titleTable, 0, 1);
+		scoreBox.add(scoreTable, 0, 2);
+		scoreBox.add(okButton, 0, 3);
+		
+		//GridPane.setHalignment(logo, HPos.CENTER);
+		GridPane.setHalignment(l, HPos.CENTER);
+		GridPane.setHalignment(scoreTable, HPos.CENTER);
+		GridPane.setHalignment(okButton, HPos.CENTER);
+		
+		scoreScene = new Scene(scoreBox, screenBounds.getWidth()/2, screenBounds.getHeight());
+		primaryStage.setScene(scoreScene);
+		
+		okButton.setOnAction(e -> {
+			primaryStage.setTitle("Disney Dream Worlds!");
+			primaryStage.setScene(primaryScene);
+		});
 	}
 	
-	// This function displays instructions/information about the game
+	// Sort Players' scores
+	public void sortScore(ArrayList<Score> scoreArrayList) {
+		Score temp;
+		
+		for (int i = 0; i < scoreArrayList.size(); i++) {
+			System.out.print(scoreArrayList.get(i).getScoreName() + ": ");
+			System.out.println(scoreArrayList.get(i).getScoreNumber());
+		}
+		
+		for (int i = 1; i < scoreArrayList.size(); i++) {
+			for (int j = i; j > 0; j--) {
+				if (scoreArrayList.get(j).getScoreNumber() < scoreArrayList.get(j-1).getScoreNumber()) {
+					
+					temp = scoreArrayList.get(j);
+					
+					scoreArrayList.set(j, scoreArrayList.get(j-1));
+					scoreArrayList.set(j-1, temp);
+				}
+			}
+		}
+		
+		System.out.println();
+		
+		for (int i = 0; i < scoreArrayList.size(); i++) {
+			System.out.print(scoreArrayList.get(i).getScoreName() + ": ");
+			System.out.println(scoreArrayList.get(i).getScoreNumber());
+		}
+	}
+	
+	// Create default score file if no players yet
+	public void createScoreFile() {
+		try {
+			File scoreBoardFile = new File("ScoreFile.txt");
+			
+			if (!scoreBoardFile.exists()) {
+				scoreBoardFile.createNewFile();
+				
+				FileWriter scoreBoardFileWriter = new FileWriter("ScoreFile.txt");
+				
+				// Write to file
+				for (int i = 0; i < 5; i++) {
+					scoreBoardFileWriter.write("S0" + (i+1) + "~");
+					scoreBoardFileWriter.write("?~");
+					scoreBoardFileWriter.write("0~\n");
+				}
+				
+				scoreBoardFileWriter.close();
+			}
+		}
+		catch(Exception e) {
+			;
+		}
+	}
+	
+	// Read the score file
+	public void readScoreFile() {
+		int attributeCounter = 0;
+		BufferedReader reader;
+		String line;
+		
+		generalScore = new Score();
+		score01 = new Score();
+		score02 = new Score();
+		score03 = new Score();
+		score04 = new Score();
+		score05 = new Score();
+		
+		scoreArrayList = new ArrayList<Score>();
+		ArrayList<Character> scoreInfo = new ArrayList<Character>();
+		String word = "";
+		
+		try {
+			reader = new BufferedReader(new FileReader("ScoreFile.txt"));
+			line = reader.readLine();
+			scoreArrayList.clear();
+			
+			// While there is a line to read
+			while (line != null) {
+				// this variable is used to keep track of what type of variable
+				// we are dealing with when storing it in the arrayList
+				attributeCounter = 0;
+				for (char c: line.toCharArray()) {
+					if (c != '~') {
+						scoreInfo.add(c);
+					}
+					else {
+						word = scoreInfo.toString().substring(1, 3*scoreInfo.size()-1).replaceAll(", ", "");
+						
+						if (attributeCounter == 0) {
+							generalScore.setScoreID(word);
+						}
+						else if (attributeCounter == 1) {
+							generalScore.setScoreName(word);
+						}
+						else {
+							generalScore.setScoreNumber(Integer.parseInt(word));
+							storeScoreAttributes();
+						}
+						attributeCounter++;
+						scoreInfo.clear();
+					}
+				}
+				line = reader.readLine();
+			}
+		}
+		catch(Exception e) {
+			;
+		}
+	}
+	
+	// Store the score attributes in the file into arraylist
+	public void storeScoreAttributes() {
+		if (generalScore.getScoreID().equals("S01")) {
+			score01.setScoreID(generalScore.getScoreID());
+			score01.setScoreName(generalScore.getScoreName());
+			score01.setScoreNumber(generalScore.getScoreNumber());
+			scoreArrayList.add(score01);
+		}
+		else if (generalScore.getScoreID().equals("S02")) {
+			score02.setScoreID(generalScore.getScoreID());
+			score02.setScoreName(generalScore.getScoreName());
+			score02.setScoreNumber(generalScore.getScoreNumber());
+			scoreArrayList.add(score02);
+		}
+		else if (generalScore.getScoreID().equals("S03")) {
+			score03.setScoreID(generalScore.getScoreID());
+			score03.setScoreName(generalScore.getScoreName());
+			score03.setScoreNumber(generalScore.getScoreNumber());
+			scoreArrayList.add(score03);
+		}
+		else if (generalScore.getScoreID().equals("S04")) {
+			score04.setScoreID(generalScore.getScoreID());
+			score04.setScoreName(generalScore.getScoreName());
+			score04.setScoreNumber(generalScore.getScoreNumber());
+			scoreArrayList.add(score04);
+		}
+		else if (generalScore.getScoreID().equals("S05")) {
+			score05.setScoreID(generalScore.getScoreID());
+			score05.setScoreName(generalScore.getScoreName());
+			score05.setScoreNumber(generalScore.getScoreNumber());
+			scoreArrayList.add(score05);
+		}
+	}
+	
+	// ====================================
+	// |						          |
+	// |						          |
+	// |       show the Help Scene        |	
+	// |						          |
+	// |						          |
+	// ====================================
 	public void showHelpScene(Stage primaryStage) {
 		helpPane = new GridPane();
 		helpPane.setAlignment(Pos.CENTER);
@@ -2234,7 +2594,6 @@ public class Main extends Application {
 		GridPane.setHalignment(okButton, HPos.CENTER);
 		
 		okButton.setOnAction(e -> {
-			soundEffect_1.play(1.0);
 			primaryStage.setTitle("Disney Dream Worlds!");
 			primaryStage.setScene(primaryScene);
 		});

@@ -1,5 +1,7 @@
 package application;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -271,7 +273,7 @@ public class Player {
 	// This function set images for each object in map
 	public void setObjectImages(ArrayList<Item> itemArrayList, ArrayList<Puzzle> puzzleArrayList, ArrayList<Monster> monsterArrayList, Image itemImage, Image puzzleImage, Image monsterImage, Group root) {
 		for (int itemIndex = 0; itemIndex < itemArrayList.size(); itemIndex++) {
-			if (itemArrayList.get(itemIndex).getItemIsPickedUp().equals(false) && itemArrayList.get(itemIndex).getItemIsLocked())
+			if (itemArrayList.get(itemIndex).getItemIsPickedUp().equals(false) && itemArrayList.get(itemIndex).getItemIsLocked().equals(false))
 				root.getChildren().add(setImageAtLocation(itemArrayList.get(itemIndex).getItemLocation(), new ImageView(itemImage)));
 		}
 		for (int puzzleIndex = 0; puzzleIndex < puzzleArrayList.size(); puzzleIndex++) {
@@ -1182,4 +1184,120 @@ public class Player {
 			return true;
 		}
 	}	
+	
+	// This function saves the progress of the player
+	public void savePlayerGame (Player player, ArrayList<Item> itemArrayList, ArrayList<Puzzle> puzzleArrayList, ArrayList<Monster> monsterArrayList, Stage primaryStage, ImageView emoji) {
+		File playerFile = new File(player.getPlayerUsername() + ".txt");
+		
+		if (playerFile.exists()) {
+			playerFile.delete();
+			
+			try {
+				playerFile.createNewFile();
+				
+				FileWriter playerFileWriter = new FileWriter(player.getPlayerUsername() + ".txt");
+				
+				playerFileWriter.write(player.getPlayerID() + "~");
+				playerFileWriter.write(player.getPlayerUsername() + "~");
+				playerFileWriter.write(player.getPlayerPassword() + "~");
+				playerFileWriter.write(player.getPlayerCurrentHealth() + "~");
+				playerFileWriter.write(player.getPlayerTotalHealth() + "~");
+				playerFileWriter.write(player.getPlayerMinAttack() + "~");
+				playerFileWriter.write(player.getPlayerMaxAttack() + "~");
+				playerFileWriter.write(player.getPlayerDefense() + "~");
+				playerFileWriter.write(player.getPlayerScore() + "~");
+				playerFileWriter.write(player.getPlayerLocation() + "~\n");
+				
+				for (int itemIndex = 0; itemIndex < itemArrayList.size(); itemIndex++) {
+					playerFileWriter.write(itemArrayList.get(itemIndex).getItemLocation() + "~");
+					playerFileWriter.write(itemArrayList.get(itemIndex).getItemIsPickedUp() + "~");
+					playerFileWriter.write(itemArrayList.get(itemIndex).getItemIsEquipped() + "~");
+					playerFileWriter.write(itemArrayList.get(itemIndex).getItemIsLocked() + "~\n");
+				}
+				
+				for (int puzzleIndex = 0; puzzleIndex < puzzleArrayList.size(); puzzleIndex++) {
+					playerFileWriter.write(puzzleArrayList.get(puzzleIndex).getPuzzleIsSolved() + "~");
+					playerFileWriter.write(puzzleArrayList.get(puzzleIndex).getPuzzleIsLocked() + "~\n");
+				}
+				
+				for (int monsterIndex = 0; monsterIndex < monsterArrayList.size(); monsterIndex++) {
+					playerFileWriter.write(monsterArrayList.get(monsterIndex).getMonsterCurrentHealth() + "~");
+					playerFileWriter.write(monsterArrayList.get(monsterIndex).getMonsterIsDefeated() + "~\n");
+				}
+				
+				playerFileWriter.close();
+				
+				displayProgressSaved(primaryStage, emoji);
+			}
+			catch(Exception e) {
+				;
+			}
+		}
+		
+	}
+	
+	// Display a message, that indicates whether the progress was sucessfully saved or not
+	public void displayProgressSaved(Stage primaryStage, ImageView emoji) {
+		Text t = new Text("Your progress has been sucessfully saved!");
+		t.setStyle("-fx-font-size: 13px;" +
+				   "-fx-font-weight: bold");
+		
+		Button okButton = new Button("OK");
+		
+		VBox box = new VBox(10);
+		box.setAlignment(Pos.CENTER);
+		
+		box.getChildren().add(t);
+		box.getChildren().add(emoji);
+		box.getChildren().add(okButton);
+		
+		Scene savedScene = new Scene(box, 300, 150);
+		Stage savedStage = new Stage();
+		
+		savedStage.setX(primaryStage.getX() + (primaryStage.getWidth() - savedScene.getWidth())/2);
+		savedStage.setY(primaryStage.getY() + (primaryStage.getHeight() - savedScene.getHeight())/2);
+		
+		savedStage.setScene(savedScene);
+		savedStage.show();
+		savedStage.setTitle("Progress Saved");
+		
+		okButton.setOnAction(e -> {
+			savedStage.close();
+		});
+	}
+	
+	public void displayEscape(Stage primaryStage, String room, ImageView emoji) {
+		
+		Text t1 = new Text("You have escaped to room:");
+		Text t2 = new Text(room);
+		
+		t1.setStyle("-fx-font-size: 13px;" +
+				   "-fx-font-weight: bold");
+		t2.setStyle("-fx-font-size: 13px;" +
+				   "-fx-font-weight: bold");
+		
+		Button okButton = new Button("OK");
+		
+		VBox box = new VBox(10);
+		box.setAlignment(Pos.CENTER);
+		
+		box.getChildren().add(t1);
+		box.getChildren().add(t2);
+		box.getChildren().add(emoji);
+		box.getChildren().add(okButton);
+		
+		Scene escapeScene = new Scene(box, 320, 150);
+		Stage escapeStage = new Stage();
+		
+		escapeStage.setX(primaryStage.getX() + (primaryStage.getWidth() - escapeScene.getWidth())/2);
+		escapeStage.setY(primaryStage.getY() + (primaryStage.getHeight() - escapeScene.getHeight())/2);
+		
+		escapeStage.setScene(escapeScene);
+		escapeStage.show();
+		escapeStage.setTitle("Escaped");
+		
+		okButton.setOnAction(e -> {
+			escapeStage.close();
+		});
+	}
 }
