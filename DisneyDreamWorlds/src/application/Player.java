@@ -491,7 +491,8 @@ public class Player {
 	// This function checks the player's current inventory
 	public void playerChecksInventory(Player player, ArrayList<Item> itemArrayList, ImageView emojiImageView_2, ImageView emojiImageView_3, ArrayList<String> generalCommandList, ArrayList<Room> roomArrayList, 
 			Stage playerInventoryStage, Stage primaryStage, TableView<Item> tableView1, Rectangle2D screenBounds, Stage commandListStage, Stage inventoryHelpStage, ImageView commandListImageView, 
-			ImageView inventoryHelpImageView, Stage invalidStage, TextField inventoryTextField) {
+			ImageView inventoryHelpImageView, Stage invalidStage, TextField inventoryTextField, Stage playerMapStage, ImageView mapImageView, ImageView locationImageView, Image puzzleImage, Image itemImage, 
+			Image monsterImage, ArrayList<Puzzle> puzzleArrayList, ArrayList<Monster> monsterArrayList) {
 
 		// Inventory Label
 		Label l1 = new Label("Your Inventory");
@@ -617,22 +618,42 @@ public class Player {
 					
 					if (item != "") {
 						itemSpecified = true;
+						
 						// If item does not exist
 						for (int itemIndex = 0; itemIndex < itemArrayList.size(); itemIndex++) {
 							if (itemArrayList.get(itemIndex).getItemName().toLowerCase().equals(item)) {
 								itemExist = true;
+								
 								// If item not in inventory
 								for (int inventoryIndex = 0; inventoryIndex < player.getPlayerInventory().size(); inventoryIndex++) {
 									if (player.getPlayerInventory().get(inventoryIndex).getItemName().toLowerCase().equals(item)) {
 										itemInInventory = true;
+										
 										// Loop through roomArrayList to get the room name of the current player location
 										for (int roomIndex = 0; roomIndex < roomArrayList.size(); roomIndex++) {
 											if (roomArrayList.get(roomIndex).getRoomID().equals(player.getPlayerLocation())) {
+												
+												item = player.getPlayerInventory().get(inventoryIndex).getItemName();
+												
 												roomNumber = roomIndex;
+												
 												player.getPlayerInventory().remove(inventoryIndex);											
 												itemArrayList.get(itemIndex).setItemIsPickedUp(false);
-												itemArrayList.get(itemIndex).setItemLocation(player.getPlayerLocation());											
+												itemArrayList.get(itemIndex).setItemLocation(player.getPlayerLocation());	
+
 												tableView1.setItems(getItems(player));
+												
+												// Updates monster images in map
+												if (playerMapStage.isShowing()) {
+													double x = playerMapStage.getX();
+													double y = playerMapStage.getY();
+													
+													playerMapStage.close();
+													displayMap(player, playerMapStage, mapImageView, locationImageView, puzzleImage, itemImage, monsterImage, puzzleArrayList, itemArrayList, monsterArrayList);
+													
+													playerMapStage.setX(x);
+													playerMapStage.setY(y);
+												}
 											}
 										}
 									}
@@ -658,6 +679,8 @@ public class Player {
 											itemEquippable = true;
 											
 											if (player.getPlayerEquipment().size() < 1) {
+												
+												item = player.getPlayerInventory().get(inventoryIndex).getItemName();
 												
 												itemSpace = true;
 												
@@ -695,6 +718,8 @@ public class Player {
 								for (int equipmentIndex = 0; equipmentIndex < player.getPlayerEquipment().size(); equipmentIndex++) {
 									if (player.getPlayerEquipment().get(equipmentIndex).getItemName().toLowerCase().equals(item)) {
 										
+										item = player.getPlayerEquipment().get(equipmentIndex).getItemName();
+										
 										itemInEquipment = true;
 										
 										player.getPlayerEquipment().get(equipmentIndex).setItemIsEquipped(false);
@@ -731,9 +756,11 @@ public class Player {
 										
 										if (player.getPlayerInventory().get(inventoryIndex).getItemType().toLowerCase().equals("consumable")) {
 											
+											item = player.getPlayerInventory().get(inventoryIndex).getItemName();
+											
 											itemConsumable = true;
 											
-											player.getPlayerEquipment().get(inventoryIndex).setItemIsEquipped(true);
+											player.getPlayerInventory().get(inventoryIndex).setItemIsEquipped(true);
 											
 											// Stats Update
 											player.setPlayerCurrentHealth(player.getPlayerCurrentHealth() + player.getPlayerInventory().get(inventoryIndex).getItemHealthAmount());
@@ -1216,6 +1243,7 @@ public class Player {
 				}
 				
 				for (int puzzleIndex = 0; puzzleIndex < puzzleArrayList.size(); puzzleIndex++) {
+					playerFileWriter.write(puzzleArrayList.get(puzzleIndex).getPuzzleAttempts() + "~");
 					playerFileWriter.write(puzzleArrayList.get(puzzleIndex).getPuzzleIsSolved() + "~");
 					playerFileWriter.write(puzzleArrayList.get(puzzleIndex).getPuzzleIsLocked() + "~\n");
 				}
@@ -1266,38 +1294,4 @@ public class Player {
 		});
 	}
 	
-	public void displayEscape(Stage primaryStage, String room, ImageView emoji) {
-		
-		Text t1 = new Text("You have escaped to room:");
-		Text t2 = new Text(room);
-		
-		t1.setStyle("-fx-font-size: 13px;" +
-				   "-fx-font-weight: bold");
-		t2.setStyle("-fx-font-size: 13px;" +
-				   "-fx-font-weight: bold");
-		
-		Button okButton = new Button("OK");
-		
-		VBox box = new VBox(10);
-		box.setAlignment(Pos.CENTER);
-		
-		box.getChildren().add(t1);
-		box.getChildren().add(t2);
-		box.getChildren().add(emoji);
-		box.getChildren().add(okButton);
-		
-		Scene escapeScene = new Scene(box, 320, 150);
-		Stage escapeStage = new Stage();
-		
-		escapeStage.setX(primaryStage.getX() + (primaryStage.getWidth() - escapeScene.getWidth())/2);
-		escapeStage.setY(primaryStage.getY() + (primaryStage.getHeight() - escapeScene.getHeight())/2);
-		
-		escapeStage.setScene(escapeScene);
-		escapeStage.show();
-		escapeStage.setTitle("Escaped");
-		
-		okButton.setOnAction(e -> {
-			escapeStage.close();
-		});
-	}
 }

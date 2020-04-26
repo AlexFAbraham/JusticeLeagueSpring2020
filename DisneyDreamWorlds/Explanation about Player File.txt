@@ -5,7 +5,7 @@ Next 15 lines are items' information
 location (it could change if the player picks them up) ~ itemIsPickedUp ~ itemIsEquipped ~ itemIsLocked (puzzle failed so item not available) ~
 
 Next 7 lines are puzzle's information
-puzzleIsSolved (not available but gives points, successfully solved) ~ isLocked (not available, doesn't give points, failed) ~
+puzzleAttempts ~ puzzleIsSolved (not available but gives points, successfully solved) ~ isLocked (not available, doesn't give points, failed) ~
 
 Last 8 lines are monster's information
 monsterCurrentHealth (bc player probably damaged them before saving the game) ~ monsterIsDefeated ~

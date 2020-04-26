@@ -1,5 +1,5 @@
-8576109FP~Francisco~Pomaya~25~25~15~25~10~500~R11~
-R04~true~false~false~
+4793279PP~Pomaya~Pomaya~25~25~15~25~10~0~R01~
+R04~false~false~false~
 R03~false~false~false~
 R08~false~false~false~
 R07~false~false~false~
@@ -14,9 +14,9 @@ R24~false~false~false~
 R27~false~false~false~
 R28~false~false~false~
 R29~false~false~false~
-3~true~true~
+3~false~false~
 5~false~false~
-3~true~true~
+3~false~false~
 3~false~false~
 3~false~false~
 5~false~false~
