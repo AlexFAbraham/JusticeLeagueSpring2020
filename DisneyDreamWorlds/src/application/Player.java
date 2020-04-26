@@ -1027,7 +1027,7 @@ public class Player {
 			itemDroppedStage.setTitle("Not in Inventory");
 		}
 		else {
-			message.setText(item + "has been dropped in Room:\n" + roomArrayList.get(roomIndex).getRoomName());
+			message.setText(item + " has been dropped in Room:\n" + roomArrayList.get(roomIndex).getRoomName());
 			itemDroppedStage.setTitle("Item Dropped");
 			emoji = emojiImageView_3;
 		}
@@ -1106,6 +1106,7 @@ public class Player {
 		});
 	}
 	
+	// This function displays the player's stats
 	public void displayStats(ImageView emoji, Stage primaryStage, Player player, Stage statsStage) {
 		Text m = new Text("Your Stats");
 		m.setFont(Font.font("Verdana", FontWeight.BOLD, 20));

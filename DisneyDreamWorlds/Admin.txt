@@ -1,6 +1,6 @@
-968183311~123123~123123~25~25~15~25~10~300~R04~
-R04~true~false~false~
-R03~true~true~false~
+5653557AA~Admin~Admin~100~100~900~900~10~600~R30~
+R04~false~false~false~
+R03~false~false~false~
 R08~false~false~false~
 R07~false~false~false~
 R12~false~false~false~
@@ -14,7 +14,7 @@ R24~false~false~false~
 R27~false~false~false~
 R28~false~false~false~
 R29~false~false~false~
-2~true~true~
+3~false~false~
 5~false~false~
 3~false~false~
 3~false~false~
@@ -23,9 +23,9 @@ R29~false~false~false~
 5~false~false~
 50~false~
 60~false~
-70~false~
+0~true~
 80~false~
-90~false~
+0~true~
 100~false~
-110~false~
-200~false~
+0~true~
+170~false~

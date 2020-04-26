@@ -239,6 +239,8 @@ public class Main extends Application {
 			readMonsterFile();
 			createScoreFile();
 			readScoreFile();
+			
+			sortScore(scoreArrayList);
 									
 			emojiImageView_1 = new ImageView(new Image(new FileInputStream("AngryEmoji.png")));
 			emojiImageView_2 = new ImageView(new Image(new FileInputStream("WearyEmoji.png")));
@@ -274,8 +276,8 @@ public class Main extends Application {
 			wakingUpImageView.setFitWidth(300);
 			wakingUpImageView.setFitHeight(200);
 			
-			fightingImageView.setFitWidth(200);
-			fightingImageView.setFitHeight(200);
+			fightingImageView.setFitWidth(100);
+			fightingImageView.setFitHeight(100);
 			
 			commandListImageView.setFitWidth(screenBounds.getWidth()/2);
 			commandListImageView.setFitHeight(screenBounds.getHeight()-80);
@@ -791,6 +793,19 @@ public class Main extends Application {
 	// the game text (room description), the other GridPane, and 
 	// a TextField that stores the user's input
 	public void showStartGameScene(Stage primaryStage) {
+		primaryStage.setOnCloseRequest(a -> {
+			if (playerInventoryStage.isShowing())
+				playerInventoryStage.close();
+			if (playerMapStage.isShowing())
+				playerMapStage.close();
+			if (itemHelpStage.isShowing())
+				itemHelpStage.close();
+			if (puzzleHelpStage.isShowing())
+				puzzleHelpStage.close();
+			if (monsterHelpStage.isShowing())
+				monsterHelpStage.close();
+		});
+		
 		// Set gaps/space Vertically and Horizontally and center it
 		GridPane roomTable = new GridPane();
 		roomTable.setVgap(10);
@@ -903,6 +918,7 @@ public class Main extends Application {
 				}
 				else if (userInputCommand.equals("save") || userInputCommand.equals("save progress") || userInputCommand.equals("save game")) {
 					player.savePlayerGame(player, itemArrayList, puzzleArrayList, monsterArrayList, primaryStage, emojiImageView_3);
+					updateScoreFile(player, scoreArrayList);
 				}
 				else if (userInputCommand.equals("open map") || userInputCommand.equals("map") || userInputCommand.equals("look map")) {
 					//player.displayMap(player, playerMapStage, mapImageView, locationImageView, puzzleImage, itemImage, monsterImage, puzzleArrayList, itemArrayList, monsterArrayList);
@@ -1085,6 +1101,7 @@ public class Main extends Application {
 	// This function displays what monster has been encountered to fight
 	// and ask the player what to do - fight, examine or ignore it -
 	public void displayMonsterFoundScene(Stage primaryStage, GridPane gameBox, int monsterIndex, TextField userInputTextField) {
+		
 		Text youFoundMonster= new Text(monsterArrayList.get(monsterIndex).getMonsterName() + " is ready to fight!");
 		youFoundMonster.setStyle("-fx-font-size: 18px;" +
 				  				 "-fx-font-weight: bold");
@@ -1134,6 +1151,7 @@ public class Main extends Application {
 				}
 				else if (userInputCommand.equals("save") || userInputCommand.equals("save progress") || userInputCommand.equals("save game")) {
 					player.savePlayerGame(player, itemArrayList, puzzleArrayList, monsterArrayList, primaryStage, emojiImageView_3);
+					updateScoreFile(player, scoreArrayList);
 				}
 				else if (userInputCommand.equals("examine") || userInputCommand.equals("examine monster") || userInputCommand.equals("examine " + monsterArrayList.get(monsterIndex).getMonsterName().toLowerCase())) {
 					monsterExamineCommand(primaryStage, monsterStage, emojiImageView_3, monsterIndex);
@@ -1212,6 +1230,8 @@ public class Main extends Application {
 		fightPane.setVgap(10);
 		fightPane.setHgap(50);
 		fightPane.setAlignment(Pos.CENTER);
+		
+		
 		
 		fightPane.setStyle("-fx-padding: 10;" + 
         				   "-fx-border-style: solid inside;" + 
@@ -1322,6 +1342,7 @@ public class Main extends Application {
 				}
 				else if (userInputCommand.equals("save") || userInputCommand.equals("save progress") || userInputCommand.equals("save game")) {
 					player.savePlayerGame(player, itemArrayList, puzzleArrayList, monsterArrayList, primaryStage, emojiImageView_3);
+					updateScoreFile(player, scoreArrayList);
 				}
 				else if (userInputCommand.equals("fight") || userInputCommand.equals("fight monster") || userInputCommand.equals("fight " + monsterArrayList.get(monsterIndex).getMonsterName().toLowerCase()) || 
 						 userInputCommand.equals("attack") || userInputCommand.equals("attack monster") || userInputCommand.equals("attack " + monsterArrayList.get(monsterIndex).getMonsterName().toLowerCase()) || 
@@ -1335,7 +1356,14 @@ public class Main extends Application {
 					
 					// Monster is Defeated
 					if (monsterArrayList.get(monsterIndex).getMonsterCurrentHealth() <= 0) {
-						// Updates monster images in map
+						
+						monsterArrayList.get(monsterIndex).setMonsterCurrentHealth(0);
+						monsterArrayList.get(monsterIndex).setMonsterIsDefeated(true);
+						
+						displayMonsterAttacked(primaryStage, monsterIndex, emojiImageView_3, playerDamage, monsterDamage, monsterArrayList.get(monsterIndex).getMonsterIsDefeated(), player.getPlayerCurrentHealth(), soundEffect_2);
+						monsterAlive = false;
+						
+						// Updates puzzle images in map
 						if (playerMapStage.isShowing()) {
 							double x = playerMapStage.getX();
 							double y = playerMapStage.getY();
@@ -1346,11 +1374,6 @@ public class Main extends Application {
 							playerMapStage.setX(x);
 							playerMapStage.setY(y);
 						}
-						
-						monsterArrayList.get(monsterIndex).setMonsterCurrentHealth(0);
-						monsterArrayList.get(monsterIndex).setMonsterIsDefeated(true);
-						displayMonsterAttacked(primaryStage, monsterIndex, emojiImageView_3, playerDamage, monsterDamage, monsterArrayList.get(monsterIndex).getMonsterIsDefeated(), player.getPlayerCurrentHealth(), soundEffect_2);
-						monsterAlive = false;
 					}
 					
 					m1.setText("Monster's Health: " + monsterArrayList.get(monsterIndex).getMonsterCurrentHealth() + "/" + monsterArrayList.get(monsterIndex).getMonsterTotalHealth());
@@ -1441,6 +1464,7 @@ public class Main extends Application {
 		});
 	}
 	
+	// Display where the player escapes after runnin away from monster
 	public void displayEscape(Stage primaryStage, String room, ImageView emoji) {
 		
 		Text t1 = new Text("You have escaped to room:");
@@ -1539,6 +1563,10 @@ public class Main extends Application {
 				displayWinMessage1(primaryStage, emoji, wakingUpImageView);
 			}
 			else if (monsterArrayList.get(monsterIndex).getMonsterCurrentHealth() <= 0){
+				
+				// For every monster defeated, reduce the final boss's health by 10
+				monsterArrayList.get(7).setMonsterCurrentHealth(monsterArrayList.get(7).getMonsterCurrentHealth() - 10);
+				
 				showStartGameScene(primaryStage);
 			}
 		});
@@ -1555,6 +1583,10 @@ public class Main extends Application {
 				displayWinMessage1(primaryStage, emoji, wakingUpImageView);
 			}
 			else if (monsterArrayList.get(monsterIndex).getMonsterCurrentHealth() <= 0){
+				
+				// For every monster defeated, reduce the final boss's health by 10
+				monsterArrayList.get(7).setMonsterCurrentHealth(monsterArrayList.get(7).getMonsterCurrentHealth() - 10);
+				
 				showStartGameScene(primaryStage);
 			}
 		});
@@ -1640,6 +1672,8 @@ public class Main extends Application {
 		winStage.show();
 		winStage.setTitle("You won");
 		
+		updateScoreFile(player, scoreArrayList);
+		
 		winStage.setOnCloseRequest(e -> {
 			if (playerInventoryStage.isShowing())
 				playerInventoryStage.close();
@@ -1720,6 +1754,8 @@ public class Main extends Application {
 		deathStage.setScene(deathScene);
 		deathStage.show();
 		deathStage.setTitle("You died");
+		
+		updateScoreFile(player, scoreArrayList);
 		
 		deathStage.setOnCloseRequest(e -> {
 			if (playerInventoryStage.isShowing())
@@ -1876,6 +1912,7 @@ public class Main extends Application {
 				}
 				else if (userInputCommand.equals("save") || userInputCommand.equals("save progress") || userInputCommand.equals("save game")) {
 					player.savePlayerGame(player, itemArrayList, puzzleArrayList, monsterArrayList, primaryStage, emojiImageView_3);
+					updateScoreFile(player, scoreArrayList);
 				}
 				else if (userInputCommand.equals("pick up") || userInputCommand.equals("pick up item") || userInputCommand.equals("pick up " + itemArrayList.get(itemIndex).getItemName().toLowerCase()) || 
 						 userInputCommand.equals("store") || userInputCommand.equals("store item") || userInputCommand.equals("store " + itemArrayList.get(itemIndex).getItemName().toLowerCase())) {
@@ -2070,6 +2107,7 @@ public class Main extends Application {
 					}
 					else if (userInputCommand.equals("save") || userInputCommand.equals("save progress") || userInputCommand.equals("save game")) {
 						player.savePlayerGame(player, itemArrayList, puzzleArrayList, monsterArrayList, primaryStage, emojiImageView_3);
+						updateScoreFile(player, scoreArrayList);
 					}
 					else if (userInputCommand.equals("help")) {
 						if (!puzzleHelpStage.isShowing())
@@ -2156,6 +2194,13 @@ public class Main extends Application {
 				}
 				// Player sucessfully answers the puzzle
 				else if (userInputCommand.equals(puzzleArrayList.get(puzzleIndex).getPuzzleAnswer())) {
+					
+					String message = "Correct! You get +" + puzzleArrayList.get(puzzleIndex).getPuzzleScore() + " points!";
+					puzzleArrayList.get(puzzleIndex).setPuzzleIsSolved(true);
+
+					displayPuzzleSolved(primaryStage, puzzleIndex, itemIndex, soundEffect_2, message, emojiImageView_3, true, gameBox, userInputTextField);
+					displayItemFoundScene(primaryStage, gameBox, itemIndex, userInputTextField, "You've unlocked an item!");
+					
 					// Updates puzzle images in map
 					if (playerMapStage.isShowing()) {
 						double x = playerMapStage.getX();
@@ -2167,11 +2212,6 @@ public class Main extends Application {
 						playerMapStage.setX(x);
 						playerMapStage.setY(y);
 					}
-					
-					String message = "Correct! You get +" + puzzleArrayList.get(puzzleIndex).getPuzzleScore() + " points!";
-					puzzleArrayList.get(puzzleIndex).setPuzzleIsSolved(true);
-					displayPuzzleSolved(primaryStage, puzzleIndex, itemIndex, soundEffect_2, message, emojiImageView_3, true, gameBox, userInputTextField);
-					displayItemFoundScene(primaryStage, gameBox, itemIndex, userInputTextField, "You've unlocked an item!");
 
 				}
 				else {
@@ -2179,6 +2219,12 @@ public class Main extends Application {
 					// Setting both puzzle and item(reward) = true
 					// So they will not show up again in the game!
 					if (puzzleArrayList.get(puzzleIndex).getPuzzleAttempts() <= 1) {
+												
+						itemArrayList.get(itemIndex).setItemIsLocked(true);
+						
+						String message = "Incorrect! The answer was " + puzzleArrayList.get(puzzleIndex).getPuzzleAnswer();
+						displayPuzzleSolved(primaryStage, puzzleIndex, itemIndex, soundEffect_3, message, emojiImageView_2, false, gameBox, userInputTextField);
+						
 						// Updates puzzle images in map
 						if (playerMapStage.isShowing()) {
 							double x = playerMapStage.getX();
@@ -2190,12 +2236,6 @@ public class Main extends Application {
 							playerMapStage.setX(x);
 							playerMapStage.setY(y);
 						}
-												
-						itemArrayList.get(itemIndex).setItemIsLocked(true);
-						
-						String message = "Incorrect! The answer was " + puzzleArrayList.get(puzzleIndex).getPuzzleAnswer();
-						displayPuzzleSolved(primaryStage, puzzleIndex, itemIndex, soundEffect_3, message, emojiImageView_2, false, gameBox, userInputTextField);
-						
 					}
 					else {
 						puzzle.displayPuzzleHint("Incorrect!", emojiImageView_4, primaryStage);
@@ -2875,7 +2915,7 @@ public class Main extends Application {
 	// |						          |
 	// ====================================
 	public void showScoreBoardScene(Stage primaryStage) {
-		sortScore(scoreArrayList);
+		//sortScore(scoreArrayList);
 		
 		GridPane scoreBox = new GridPane();
 		scoreBox.setVgap(30);
@@ -2978,9 +3018,68 @@ public class Main extends Application {
 		primaryStage.setScene(scoreScene);
 		
 		okButton.setOnAction(e -> {
+			soundEffect_1.play(1.0);
 			primaryStage.setTitle("Disney Dream Worlds!");
 			primaryStage.setScene(primaryScene);
 		});
+	}
+	
+	// Store score of the current player in score file
+	// only if the score of the current player is greater than
+	// the lowest score in the score array list and
+	// if the current player is not in the score file (duplicates)
+	public void updateScoreFile(Player player, ArrayList<Score> scoreArrayList) {
+		File scoreFile = new File("ScoreFile.txt");
+		
+		if (scoreFile.exists()) {
+			scoreFile.delete();
+			
+			try {
+				scoreFile.createNewFile();
+				
+				FileWriter scoreFileWriter = new FileWriter("ScoreFile.txt");
+				
+				// Indicator
+				Boolean userInScoreboard = false;
+				
+				// Program will loop through the scoreArrayList
+				// Will find if the current player is currently in the scoreboard
+				// Will update the scoreboard if it is
+				for (int i = 0; i < scoreArrayList.size(); i++) {
+					if (scoreArrayList.get(i).getScoreName().equals(player.getPlayerUsername())) {
+						
+						userInScoreboard = true;
+						
+						scoreArrayList.get(i).setScoreNumber(player.getPlayerScore());
+
+					}
+				}
+				// However, if the player is not in the current scoreboard
+				// The current player's score will be compared to the lowest
+				// score in the scoreboard. (Already sorted, in the main method)
+				// If the current player's score is higher, then it will replace
+				// the number and name. Else nothing happens.
+				if (userInScoreboard.equals(false)) {
+					
+					if (scoreArrayList.get(0).getScoreNumber() < player.getPlayerScore()) {
+						scoreArrayList.get(0).setScoreName(player.getPlayerUsername());
+						scoreArrayList.get(0).setScoreNumber(player.getPlayerScore());
+					}
+				}
+				
+				// Write to file
+				for (int index = 0; index < scoreArrayList.size(); index++) {
+					scoreFileWriter.write(scoreArrayList.get(index).getScoreID() + "~");
+					scoreFileWriter.write(scoreArrayList.get(index).getScoreName() + "~");
+					scoreFileWriter.write(scoreArrayList.get(index).getScoreNumber() + "~\n");
+				}
+				
+				scoreFileWriter.close();
+			}
+			catch(Exception e) {
+				
+			}
+		}
 	}
 	
 	// Sort Players' scores
@@ -2988,8 +3087,6 @@ public class Main extends Application {
 		Score temp;
 		
 		for (int i = 0; i < scoreArrayList.size(); i++) {
-			System.out.print(scoreArrayList.get(i).getScoreName() + ": ");
-			System.out.println(scoreArrayList.get(i).getScoreNumber());
 		}
 		
 		for (int i = 1; i < scoreArrayList.size(); i++) {
@@ -3002,13 +3099,6 @@ public class Main extends Application {
 					scoreArrayList.set(j-1, temp);
 				}
 			}
-		}
-		
-		System.out.println();
-		
-		for (int i = 0; i < scoreArrayList.size(); i++) {
-			System.out.print(scoreArrayList.get(i).getScoreName() + ": ");
-			System.out.println(scoreArrayList.get(i).getScoreNumber());
 		}
 	}
 	
@@ -3151,6 +3241,7 @@ public class Main extends Application {
 		GridPane.setHalignment(okButton, HPos.CENTER);
 		
 		okButton.setOnAction(e -> {
+			soundEffect_1.play(1.0);
 			primaryStage.setTitle("Disney Dream Worlds!");
 			primaryStage.setScene(primaryScene);
 		});

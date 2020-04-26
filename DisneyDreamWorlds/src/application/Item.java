@@ -12,7 +12,7 @@ public class Item {
 	private Boolean itemIsPickedUp;
 	private Boolean itemIsEquipped;
 	private Boolean itemIsLocked;
-	
+
 	public Item() {
 		itemID = "";
 		itemName = "";
